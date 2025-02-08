@@ -1,7 +1,7 @@
 {
-  "name": "easy-archive-wasm",
+  "name": "easy-archive",
   "version": "0.1.0",
-  "description": "easy-archive-wasm",
+  "description": "easy-archive",
   "main": "dist/index.js",
   "bin": "./bin/cli.js",
   "types": "./dist/index.d.ts",
