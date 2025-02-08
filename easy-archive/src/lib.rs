@@ -13,7 +13,7 @@ mod test {
             let fmt = Fmt::guess(&path.to_string_lossy()).unwrap();
             let files = fmt.decode(buffer).unwrap();
             let dist = files.get("mujs-build-0.0.11/dist-manifest.json").unwrap();
-            assert!(dist.get_buffer().len() > 0);
+            assert!(!dist.get_buffer().is_empty());
         }
     }
 }

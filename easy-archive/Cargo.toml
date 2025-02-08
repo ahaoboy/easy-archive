@@ -20,5 +20,4 @@ flate2 = { workspace = true }
 lzma-rs = { workspace = true }
 ruzstd = { workspace = true }
 bzip2-rs = { workspace = true }
-umask = { workspace = true }
 wasm-bindgen = { workspace = true, optional = true }
