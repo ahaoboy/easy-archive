@@ -1,5 +1,3 @@
-use std::{fs::Permissions, os::unix::fs::PermissionsExt};
-
 use easy_archive::ty::Fmt;
 
 fn main() {
@@ -23,9 +21,14 @@ fn main() {
                 if !buffer.is_empty() {
                     std::fs::write(&output_path, &buffer).expect("failed to write file");
                 }
+
+                #[cfg(unix)]
                 if let Some(mode) = file.get_mode() {
-                    std::fs::set_permissions(&output_path, Permissions::from_mode(mode))
-                        .expect("failed to set permissions");
+                    std::fs::set_permissions(
+                        &output_path,
+                        std::os::unix::fs::PermissionsExt::from_mode(mode),
+                    )
+                    .expect("failed to set permissions");
                 }
 
                 println!("{} -> {}", path, output_path.to_string_lossy(),)
