@@ -1,0 +1,32 @@
+{
+  "name": "easy-archive-wasm",
+  "version": "0.1.0",
+  "description": "easy-archive-wasm",
+  "main": "dist/index.js",
+  "bin": "./bin/cli.js",
+  "types": "./dist/index.d.ts",
+  "author": "ahaoboy",
+  "license": "MIT",
+  "homepage": "https://github.com/ahaoboy/easy-archive",
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ahaoboy/easy-archive.git"
+  },
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest --run",
+    "copy:wasm": "cp ./src-ts/wasm ./dist -r",
+    "build:lib": "tsc",
+    "build:cli": "esbuild ./src-ts/cli.ts --bundle --outdir=./dist --platform=node",
+    "build": "pnpm run build:wasm && pnpm run build:inline && pnpm run build:lib && pnpm run build:cli && pnpm run copy:wasm",
+    "build:wasm": "wasm-pack build --target=web --out-dir ./web --release",
+    "build:inline": " wasm-pack-inline ./web -d ./src-ts/wasm --name index"
+  },
+  "keywords": [
+    "easy-archive"
+  ]
+}

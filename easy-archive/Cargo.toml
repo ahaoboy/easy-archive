@@ -1,0 +1,32 @@
+[package]
+name = "easy-archive"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+description = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+
+[[bin]]
+name = "easy-archive"
+
+[features]
+wasm = ["wasm-bindgen"]
+
+[dependencies]
+tar = { package = "binstall-tar", version = "0.4.42" }
+zip = { version = "2.2.2", default-features = false, features = ["deflate"] }
+flate2 = { version = "1.0", default-features = false, features = [
+  "rust_backend",
+  "miniz_oxide",
+] }
+lzma-rs = "0.3.0"
+# bzip2 = { version = "0.5", default-features = false, features = ["rust_backend"] }
+ruzstd = "0.8"
+bzip2-rs = "0.1.2"
+
+# tar = "0.4"
+# flate2 = "1.0"
+# xz2 = "0.1"
+umask = "2.0"
+wasm-bindgen = { workspace = true, optional = true }

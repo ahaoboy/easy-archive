@@ -1,0 +1,24 @@
+[workspace]
+members = ["easy-archive", "easy-archive-wasm"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "easy-archive"
+repository = "https://github.com/ahaoboy/easy-archive"
+homepage = "https://github.com/ahaoboy/easy-archive"
+authors = ["ahaoboy"]
+
+[workspace.dependencies]
+wasm-bindgen = { version = "0.2" }
+wasm-bindgen-test = "0.3"
+
+
+[profile.release]
+debug = false
+lto = true
+strip = true
+opt-level = 3
+codegen-units = 1

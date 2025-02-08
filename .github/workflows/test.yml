@@ -1,0 +1,56 @@
+name: Test
+
+permissions:
+  contents: write
+
+on: [push]
+
+env:
+  CARGO_TERM_COLOR: always
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -CeEuo pipefail {0}
+
+jobs:
+  rust-test:
+    strategy:
+      matrix:
+        os: [
+          ubuntu-24.04,
+          windows-latest,
+          macos-latest,
+          macos-13,
+        ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+      - name: cargo test
+        run: |
+          cargo test
+
+  js-test:
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, windows-latest, macos-latest, macos-13]
+    runs-on: ${{ matrix.os }}
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: vitest
+        run: |
+          pnpm install
+          pnpm run build
+          pnpm run test:run

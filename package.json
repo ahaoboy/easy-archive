@@ -1,0 +1,34 @@
+{
+  "name": "easy-archive",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "pre-check": "cargo fmt && cargo clippy --fix --allow-dirty --allow-staged && cargo test && npm run format",
+    "build": "pnpm run --parallel build",
+    "test": "pnpm run --parallel test",
+    "test:run": "pnpm run --parallel test:run",
+    "format": "deno fmt --ignore=easy-archive-wasm/src-ts/wasm --indent-width=2 --no-semicolons --single-quote"
+  },
+  "description": "easy-archive",
+  "main": "dist/index.js",
+  "bin": "./bin/cli.js",
+  "types": "./dist/index.d.ts",
+  "author": "ahaoboy",
+  "license": "MIT",
+  "homepage": "https://github.com/ahaoboy/easy-archive",
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ahaoboy/easy-archive.git"
+  },
+  "devDependencies": {
+    "vitest": "3.0.5",
+    "@types/node": "22.13.1",
+    "esbuild": "0.25.0",
+    "typescript": "5.7.3",
+    "wasm-pack-inline": "0.1.2"
+  }
+}
