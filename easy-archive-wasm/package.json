@@ -1,5 +1,5 @@
 {
-  "name": "easy-archive",
+  "name": "@easy-install/easy-archive",
   "version": "0.1.0",
   "description": "easy-archive",
   "main": "dist/index.js",

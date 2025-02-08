@@ -6,6 +6,6 @@ cargo binstall easy-archive
 ```
 
 ```bash
-pnpm install easy-archive -g
+pnpm install @easy-install/easy-archive -g
 
 ```
