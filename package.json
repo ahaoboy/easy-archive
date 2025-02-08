@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "update-assets": "bash scripts/update-assets.sh",
     "pre-check": "cargo fmt && cargo clippy --fix --allow-dirty --allow-staged && cargo test && npm run format",
     "build": "pnpm run --parallel build",
     "test": "pnpm run --parallel test",

@@ -13,8 +13,16 @@ authors = ["ahaoboy"]
 
 [workspace.dependencies]
 wasm-bindgen = { version = "0.2" }
-wasm-bindgen-test = "0.3"
-
+tar = { package = "binstall-tar", version = "0.4.42" }
+zip = { version = "2.2.2", default-features = false, features = ["deflate"] }
+flate2 = { version = "1.0", default-features = false, features = [
+  "rust_backend",
+  "miniz_oxide",
+] }
+lzma-rs = "0.3.0"
+ruzstd = "0.8"
+bzip2-rs = "0.1.2"
+umask = "2.0"
 
 [profile.release]
 debug = false

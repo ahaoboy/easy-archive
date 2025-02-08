@@ -61,14 +61,14 @@ impl<'a> IntoIterator for &'a Files {
 
 
 impl Fmt {
-    pub fn decode(&self, buf: Vec<u8>) -> Option<Files> {
+    pub fn decode(&self, buffer: Vec<u8>) -> Option<Files> {
         match self {
-            Fmt::Zip => Zip::decode(buf),
-            Fmt::Tar => Tar::decode(buf),
-            Fmt::TarGz => TarGz::decode(buf),
-            Fmt::TarXz => TarXz::decode(buf),
-            Fmt::TarBz => TarBz::decode(buf),
-            Fmt::TarZstd => TarZstd::decode(buf),
+            Fmt::Zip => Zip::decode(buffer),
+            Fmt::Tar => Tar::decode(buffer),
+            Fmt::TarGz => TarGz::decode(buffer),
+            Fmt::TarXz => TarXz::decode(buffer),
+            Fmt::TarBz => TarBz::decode(buffer),
+            Fmt::TarZstd => TarZstd::decode(buffer),
         }
     }
 
@@ -128,7 +128,7 @@ pub trait Encode {
 }
 
 pub trait Decode {
-    fn decode(buf: Vec<u8>) -> Option<Files>;
+    fn decode(buffer: Vec<u8>) -> Option<Files>;
 }
 
 pub trait Archive: Encode + Decode {}
@@ -144,7 +144,7 @@ mod test {
             ("a.tar", Fmt::Tar),
             ("a.tar.gz", Fmt::TarGz),
             ("a.tar.xz", Fmt::TarXz),
-            ("a.tar.bz", Fmt::TarBz),
+            ("a.tar.bz2", Fmt::TarBz),
         ] {
             assert!(Fmt::guess(name) == Some(fmt))
         }

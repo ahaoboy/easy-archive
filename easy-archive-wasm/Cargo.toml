@@ -10,8 +10,3 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 wasm-bindgen = { workspace = true }
 easy-archive = { path = "../easy-archive", features = ["wasm"] }
-zip = { version = "2.2.2", default-features = false, features = ["deflate"] }
-umask = "2.0"
-
-[dev-dependencies]
-wasm-bindgen-test = "0.3.34"

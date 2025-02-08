@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-export function decode(name: string, buf: Uint8Array): Files | undefined;
+export function decode(name: string, buffer: Uint8Array): Files | undefined;
 export enum Fmt {
   Tar = 0,
   TarGz = 1,

@@ -4,8 +4,8 @@ import { basename, dirname, join } from 'path'
 
 const path = process.argv[2]
 const name = basename(path)
-const buf = new Uint8Array(readFileSync(path))
-const files = decode(name, buf)!
+const buffer = new Uint8Array(readFileSync(path))
+const files = decode(name, buffer)!
 for (const i of files.keys()) {
   const file = files.get(i)
   if (!file) {
