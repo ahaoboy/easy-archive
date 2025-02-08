@@ -3,14 +3,13 @@
   "version": "0.1.0",
   "description": "easy-archive",
   "main": "dist/index.js",
-  "bin": "./bin/cli.js",
+  "bin": "./dist/cli.js",
   "types": "./dist/index.d.ts",
   "author": "ahaoboy",
   "license": "MIT",
   "homepage": "https://github.com/ahaoboy/easy-archive",
   "files": [
-    "dist",
-    "bin"
+    "dist"
   ],
   "repository": {
     "type": "git",
