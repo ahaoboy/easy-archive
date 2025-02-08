@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
-export function decode(name: string, buffer: Uint8Array): Files | undefined;
+export function guess(name: string): Fmt | undefined;
+export function decode(fmt: Fmt, buffer: Uint8Array): Files | undefined;
 export enum Fmt {
   Tar = 0,
   TarGz = 1,
@@ -12,10 +13,10 @@ export enum Fmt {
 export class File {
   private constructor();
   free(): void;
-  static new(path: string, buffer: Uint8Array, mode?: string | null): File;
+  static new(path: string, buffer: Uint8Array, mode?: number | null): File;
   get_buffer(): Uint8Array;
   get_path(): string;
-  get_mode(): string | undefined;
+  get_mode(): number | undefined;
 }
 export class Files {
   private constructor();

@@ -1,6 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
-
-use umask::Mode;
+use std::collections::HashMap;
 
 use crate::archive::{
     tar::{Tar, TarBz, TarGz, TarXz, TarZstd},
@@ -59,7 +57,6 @@ impl<'a> IntoIterator for &'a Files {
     }
 }
 
-
 impl Fmt {
     pub fn decode(&self, buffer: Vec<u8>) -> Option<Files> {
         match self {
@@ -100,17 +97,13 @@ impl Fmt {
 pub struct File {
     buffer: Vec<u8>,
     path: String,
-    mode: Option<Mode>,
+    mode: Option<u32>,
 }
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 impl File {
-    pub fn new(path: String, buffer: Vec<u8>, mode: Option<String>) -> Self {
-        File {
-            path,
-            buffer,
-            mode: mode.and_then(|i| Mode::from_str(&i).ok()),
-        }
+    pub fn new(path: String, buffer: Vec<u8>, mode: Option<u32>) -> Self {
+        File { path, buffer, mode }
     }
     pub fn get_buffer(&self) -> Vec<u8> {
         self.buffer.clone()
@@ -118,8 +111,8 @@ impl File {
     pub fn get_path(&self) -> String {
         self.path.clone()
     }
-    pub fn get_mode(&self) -> Option<String> {
-        self.mode.map(|i| i.to_string())
+    pub fn get_mode(&self) -> Option<u32> {
+        self.mode
     }
 }
 

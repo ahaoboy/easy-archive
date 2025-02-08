@@ -18,7 +18,9 @@ impl Decode for Tar {
             }
             let mut buffer = vec![];
             file.read_to_end(&mut buffer).expect("failed to read file");
-            files.insert(path.clone(), File::new(path, buffer, None));
+
+            let mode = file.header().mode().ok();
+            files.insert(path.clone(), File::new(path, buffer, mode));
         }
         Some(files)
     }
