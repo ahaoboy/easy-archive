@@ -56,7 +56,7 @@ jobs:
           override: true
       - name: vitest
         run: |
-          cargo binstall wasm-pack
+          cargo install wasm-pack
           pnpm install
           pnpm run build
           pnpm run test:run
