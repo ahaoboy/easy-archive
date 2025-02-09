@@ -66,7 +66,7 @@ fn main() {
                     std::fs::write(&output_path, buffer).expect("failed to write file");
                 }
 
-                #[cfg(unix)]
+                #[cfg(not(windows))]
                 if let Some(mode) = file.mode {
                     std::fs::set_permissions(
                         &output_path,
