@@ -100,22 +100,44 @@ impl Fmt {
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 #[derive(Debug, Clone, Default)]
 pub struct File {
-    buffer: Vec<u8>,
-    path: String,
-    mode: Option<u32>,
+    #[cfg_attr(feature = "wasm", wasm_bindgen(skip))]
+    pub buffer: Vec<u8>,
+    #[cfg_attr(feature = "wasm", wasm_bindgen(skip))]
+    pub path: String,
+    #[cfg_attr(feature = "wasm", wasm_bindgen(skip))]
+    pub mode: Option<u32>,
 }
+
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 impl File {
+    #[cfg_attr(feature = "wasm", wasm_bindgen(constructor))]
     pub fn new(path: String, buffer: Vec<u8>, mode: Option<u32>) -> Self {
         File { path, buffer, mode }
     }
+
+    #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = "isDir"))]
+    pub fn is_dir(&self) -> bool {
+        self.path.ends_with("/")
+    }
+}
+
+#[cfg(feature = "wasm")]
+#[wasm_bindgen]
+impl File {
+    #[wasm_bindgen(getter = buffer)]
     pub fn get_buffer(&self) -> Vec<u8> {
         self.buffer.clone()
     }
+
+    #[wasm_bindgen(getter = path)]
     pub fn get_path(&self) -> String {
         self.path.clone()
     }
+
+    #[wasm_bindgen(getter = mode)]
     pub fn get_mode(&self) -> Option<u32> {
         self.mode
     }

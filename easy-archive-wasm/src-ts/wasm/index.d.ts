@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export function guess(name: string): Fmt | undefined;
+export function extensions(fmt: Fmt): string[];
 export function decode(fmt: Fmt, buffer: Uint8Array): Files | undefined;
 export enum Fmt {
   Tar = 0,
@@ -11,12 +12,12 @@ export enum Fmt {
   Zip = 5,
 }
 export class File {
-  private constructor();
   free(): void;
-  static new(path: string, buffer: Uint8Array, mode?: number | null): File;
-  get_buffer(): Uint8Array;
-  get_path(): string;
-  get_mode(): number | undefined;
+  constructor(path: string, buffer: Uint8Array, mode?: number | null);
+  isDir(): boolean;
+  readonly buffer: Uint8Array;
+  readonly path: string;
+  readonly mode: number | undefined;
 }
 export class Files {
   private constructor();

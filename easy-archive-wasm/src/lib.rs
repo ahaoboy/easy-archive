@@ -7,6 +7,11 @@ pub fn guess(name: String) -> Option<Fmt> {
 }
 
 #[wasm_bindgen]
+pub fn extensions(fmt: Fmt) -> Vec<String> {
+    fmt.extensions()
+}
+
+#[wasm_bindgen]
 pub fn decode(fmt: Fmt, buffer: Vec<u8>) -> Option<Files> {
     fmt.decode(buffer)
 }
