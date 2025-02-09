@@ -37,6 +37,8 @@ jobs:
           curl -L -o mujs.tar.xz https://github.com/ahaoboy/mujs-build/releases/download/v0.0.11/mujs-x86_64-unknown-linux-gnu.tar.xz
           cargo run -- ./mujs.tar.xz ./mujs
           ls -lh ./mujs
+          echo "console.log(1+1)" > ./a.js
+          ./mujs/mujs ./a.js
 
   js-test:
     strategy:
@@ -68,3 +70,5 @@ jobs:
           curl -L -o mujs.tar.xz https://github.com/ahaoboy/mujs-build/releases/download/v0.0.11/mujs-x86_64-unknown-linux-gnu.tar.xz
           node ./dist/cli.js ./mujs.tar.xz ./mujs
           ls -lh ./mujs
+          echo "console.log(1+1)" > ./a.js
+          ./mujs/mujs ./a.js
