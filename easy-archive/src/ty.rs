@@ -70,25 +70,30 @@ impl Fmt {
     }
 
     pub fn guess(name: &str) -> Option<Self> {
-        if name.ends_with(".zip") {
-            return Some(Fmt::Zip);
-        }
-        if name.ends_with(".tar") {
-            return Some(Fmt::Tar);
-        }
-        if name.ends_with(".tar.gz") || name.ends_with(".tgz") {
-            return Some(Fmt::TarGz);
-        }
-        if name.ends_with(".tar.xz") || name.ends_with(".txz") {
-            return Some(Fmt::TarXz);
-        }
-        if name.ends_with(".tzstd") || name.ends_with(".tzst") || name.ends_with(".tar.zst") {
-            return Some(Fmt::TarZstd);
-        }
-        if name.ends_with(".tar.bz2") || name.ends_with("tbz2") {
-            return Some(Fmt::TarBz);
+        use Fmt::*;
+        for fmt in [Tar, TarGz, TarXz, TarBz, TarZstd, Zip] {
+            for ext in fmt.extensions() {
+                if name.ends_with(&ext) {
+                    return Some(fmt);
+                }
+            }
         }
         None
+    }
+
+    pub fn extensions(&self) -> Vec<String> {
+        match self {
+            Fmt::Tar => vec![".tar".to_string()],
+            Fmt::TarGz => vec![".tar.gz".to_string(), ".tgz".to_string()],
+            Fmt::TarXz => vec![".tar.xz".to_string(), ".txz".to_string()],
+            Fmt::TarBz => vec![".tar.bz2".to_string(), ".tbz2".to_string()],
+            Fmt::TarZstd => vec![
+                ".tzstd".to_string(),
+                ".tzst".to_string(),
+                ".tar.zst".to_string(),
+            ],
+            Fmt::Zip => vec![".zip".to_string()],
+        }
     }
 }
 
