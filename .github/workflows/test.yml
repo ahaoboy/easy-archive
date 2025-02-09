@@ -17,7 +17,15 @@ jobs:
   rust-test:
     strategy:
       matrix:
-        os: [ubuntu-24.04, windows-latest, macos-latest, macos-13]
+        include:
+          - target: x86_64-apple-darwin
+            os: macos-13
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-gnu
+            os: windows-latest
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-24.04
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -34,7 +42,7 @@ jobs:
       - name: test cli
         run: |
           cd easy-archive
-          curl -L -o mujs.tar.xz https://github.com/ahaoboy/mujs-build/releases/download/v0.0.11/mujs-x86_64-unknown-linux-gnu.tar.xz
+          curl -L -o mujs.tar.xz https://github.com/ahaoboy/mujs-build/releases/download/v0.0.11/mujs-${{ matrix.target }}.tar.xz
           cargo run -- ./mujs.tar.xz ./mujs
           ls -lh ./mujs
           echo "console.log(1+1)" > ./a.js
@@ -43,7 +51,15 @@ jobs:
   js-test:
     strategy:
       matrix:
-        os: [ubuntu-24.04, windows-latest, macos-latest, macos-13]
+        include:
+          - target: x86_64-apple-darwin
+            os: macos-13
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-gnu
+            os: windows-latest
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-24.04
     runs-on: ${{ matrix.os }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -67,7 +83,7 @@ jobs:
         run: |
           cd easy-archive-wasm
           pnpm run build:cli
-          curl -L -o mujs.tar.xz https://github.com/ahaoboy/mujs-build/releases/download/v0.0.11/mujs-x86_64-unknown-linux-gnu.tar.xz
+          curl -L -o mujs.tar.xz https://github.com/ahaoboy/mujs-build/releases/download/v0.0.11/mujs-${{ matrix.target }}.tar.xz
           node ./dist/cli.js ./mujs.tar.xz ./mujs
           ls -lh ./mujs
           echo "console.log(1+1)" > ./a.js

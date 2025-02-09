@@ -106,7 +106,6 @@ if (output) {
     }
 
     if (mode && process.platform !== 'win32') {
-      console.log('outputPath', outputPath, mode)
       chmodSync(outputPath, mode)
     }
 
