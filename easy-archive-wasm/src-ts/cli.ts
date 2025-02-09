@@ -90,9 +90,7 @@ if (output) {
     if (!file) {
       continue
     }
-    const path = file.path
-    const buffer = file.buffer
-    const mode = file.mode
+    const { path, buffer, mode } = file
     const outputPath = join(output, path)
     const outputDir = dirname(outputPath)
     if (!existsSync(outputDir)) {
@@ -103,7 +101,7 @@ if (output) {
       mkdirSync(outputPath, { recursive: true })
     }
 
-    if (buffer.length) {
+    if (buffer.length && !file.isDir()) {
       writeFileSync(outputPath, buffer)
     }
 

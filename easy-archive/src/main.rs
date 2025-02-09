@@ -54,8 +54,12 @@ fn main() {
                 if !dir.exists() {
                     std::fs::create_dir_all(dir).expect("failed to create dir");
                 }
+                if file.is_dir() && !output_path.exists() {
+                    std::fs::create_dir_all(&output_path).expect("failed to create dir");
+                }
+
                 let buffer = &file.buffer;
-                if !buffer.is_empty() {
+                if !buffer.is_empty() && !file.is_dir() {
                     std::fs::write(&output_path, buffer).expect("failed to write file");
                 }
 
