@@ -36,7 +36,7 @@ function humanSize(bytes: number): string {
     throw new Error('Size must be non-negative')
   }
 
-  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  const units = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
   let index = 0
   let size = bytes
 
@@ -45,7 +45,7 @@ function humanSize(bytes: number): string {
     index++
   }
 
-  return `${size.toFixed(2)} ${units[index]}`
+  return `${parseFloat(size.toPrecision(2))}${units[index]}`
 }
 
 const path = process.argv[2]
@@ -78,7 +78,7 @@ const sizeMaxLen = infoList.reduce(
   0,
 )
 for (const [a, b, c] of infoList) {
-  console.log(a, b.padEnd(sizeMaxLen, ' '), c)
+  console.log(a, b.padStart(sizeMaxLen, ' '), c)
 }
 
 const output = process.argv[3]

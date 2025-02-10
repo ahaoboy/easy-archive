@@ -15,17 +15,31 @@ fn mode_to_string(mode: u32, is_dir: bool) -> String {
     format!("{}{}{}{}", d, owner, group, others)
 }
 
-fn hunman_size(bytes: usize) -> String {
-    let units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-    let mut size = bytes as f64;
-    let mut index = 0;
+fn round_sig(value: f64, sig: u32) -> f64 {
+    if value == 0.0 {
+        return 0.0;
+    }
+    let order = value.abs().log10().floor();
+    let factor = 10f64.powf(order - (sig as f64) + 1.0);
+    (value / factor).round() * factor
+}
 
-    while size >= 1024.0 && index < units.len() - 1 {
-        size /= 1024.0;
-        index += 1;
+pub fn human_size(bytes: usize) -> String {
+    if bytes == 0 {
+        return "0".to_string();
     }
 
-    format!("{:.2} {}", size, units[index])
+    let units = ["", "K", "M", "G", "T", "P", "E", "Z", "Y"];
+    let b = bytes as f64;
+    let exponent = (b.log(1024.0)).floor() as usize;
+    let value = b / 1024f64.powi(exponent as i32);
+    let rounded = round_sig(value, 2);
+
+    if (rounded - rounded.floor()).abs() < 1e-10 {
+        format!("{}{}", rounded as u64, units[exponent])
+    } else {
+        format!("{}{}", rounded, units[exponent])
+    }
 }
 
 fn main() {
@@ -37,14 +51,14 @@ fn main() {
         for (path, file) in &files {
             info_list.push((
                 mode_to_string(file.mode.unwrap_or(0), file.is_dir()),
-                hunman_size(file.buffer.len()),
+                human_size(file.buffer.len()),
                 path,
             ));
         }
         let size_max_len = info_list.iter().fold(0, |pre, cur| pre.max(cur.1.len()));
         for (a, b, c) in info_list {
             let n = b.len();
-            println!("{} {} {}", a, b + &" ".repeat(size_max_len - n), c);
+            println!("{} {} {}", a, " ".repeat(size_max_len - n) + &b, c);
         }
         if let Some(output) = std::env::args().nth(2) {
             println!("decompress to {}", output);
