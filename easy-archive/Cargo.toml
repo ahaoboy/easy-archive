@@ -22,3 +22,4 @@ ruzstd = { workspace = true }
 bzip2-rs = { workspace = true }
 wasm-bindgen = { workspace = true, optional = true }
 path-clean = { workspace = true }
+indexmap = "2.7"

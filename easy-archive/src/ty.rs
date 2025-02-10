@@ -1,9 +1,8 @@
-use std::collections::HashMap;
-
 use crate::archive::{
     tar::{Tar, TarBz, TarGz, TarXz, TarZstd},
     zip::Zip,
 };
+use indexmap::IndexMap;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -18,12 +17,12 @@ pub enum Fmt {
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 #[derive(Debug, Clone, Default)]
-pub struct Files(HashMap<String, File>);
+pub struct Files(IndexMap<String, File>);
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 impl Files {
     pub fn new() -> Self {
-        Files(HashMap::new())
+        Files(IndexMap::new())
     }
 
     pub fn get(&self, path: &str) -> Option<File> {
@@ -41,7 +40,7 @@ impl Files {
 
 impl IntoIterator for Files {
     type Item = (String, File);
-    type IntoIter = std::collections::hash_map::IntoIter<String, File>;
+    type IntoIter = <IndexMap<String, File> as IntoIterator>::IntoIter;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -50,7 +49,7 @@ impl IntoIterator for Files {
 
 impl<'a> IntoIterator for &'a Files {
     type Item = (&'a String, &'a File);
-    type IntoIter = std::collections::hash_map::Iter<'a, String, File>;
+    type IntoIter = indexmap::map::Iter<'a, String, File>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.iter()

@@ -63,7 +63,6 @@ fn main() {
         if let Some(output) = std::env::args().nth(2) {
             println!("decompress to {}", output);
             for (path, file) in &files {
-                println!("path {:?} {:?}", path, file.mode);
                 let output_path = std::path::Path::new(&output).clean();
                 let output_path = output_path.join(path).clean();
                 let dir = output_path.parent().expect("failed to get parent dir");
@@ -71,7 +70,6 @@ fn main() {
                     std::fs::create_dir_all(dir).expect("failed to create dir");
                 }
                 if file.is_dir() && !output_path.exists() {
-                    println!("output_path {:?}", output_path);
                     std::fs::create_dir_all(&output_path).expect("failed to create dir");
                 }
 
