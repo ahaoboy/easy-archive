@@ -3,7 +3,7 @@ members = ["easy-archive", "easy-archive-wasm"]
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 description = "easy-archive"
@@ -23,6 +23,7 @@ lzma-rs = "0.3"
 ruzstd = "0.8"
 bzip2-rs = "0.1"
 path-clean = "1"
+indexmap = "2.7"
 
 [profile.release]
 debug = false
