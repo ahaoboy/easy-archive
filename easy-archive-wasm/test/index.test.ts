@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { expect, test } from 'vitest'
-import { decode, extensions, Fmt, guess } from '../src-ts'
+import { decode, extensions, File, Files, Fmt, guess } from '../src-ts'
 
 const assetsDir = '../assets'
 const distKey = 'mujs-build-0.0.11/dist-manifest.json'
@@ -35,4 +35,12 @@ test('extension', () => {
       expect(guess(ext)).toEqual(i)
     }
   }
+})
+
+test('files', () => {
+  const files = new Files()
+  files.insert('a', new File('a', new Uint8Array(), 0))
+  expect(files.keys()).toEqual(['a'])
+  files.insert('b', new File('b', new Uint8Array(), 0))
+  expect(files.keys()).toEqual(['a', 'b'])
 })

@@ -20,9 +20,8 @@ export class File {
   readonly mode: number | undefined;
 }
 export class Files {
-  private constructor();
   free(): void;
-  static new(): Files;
+  constructor();
   get(path: string): File | undefined;
   insert(name: string, file: File): File | undefined;
   keys(): string[];

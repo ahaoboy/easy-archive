@@ -21,6 +21,7 @@ pub struct Files(IndexMap<String, File>);
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 impl Files {
+    #[cfg_attr(feature = "wasm", wasm_bindgen(constructor))]
     pub fn new() -> Self {
         Files(IndexMap::new())
     }
