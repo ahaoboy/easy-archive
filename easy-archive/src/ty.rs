@@ -104,8 +104,9 @@ pub struct File {
     pub buffer: Vec<u8>,
     #[cfg_attr(feature = "wasm", wasm_bindgen(skip))]
     pub path: String,
-    #[cfg_attr(feature = "wasm", wasm_bindgen(skip))]
     pub mode: Option<u32>,
+    #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = "isDir"))]
+    pub is_dir: bool,
 }
 
 #[cfg(feature = "wasm")]
@@ -114,14 +115,19 @@ use wasm_bindgen::prelude::*;
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 impl File {
     #[cfg_attr(feature = "wasm", wasm_bindgen(constructor))]
-    pub fn new(path: String, buffer: Vec<u8>, mode: Option<u32>) -> Self {
-        File { path, buffer, mode }
+    pub fn new(path: String, buffer: Vec<u8>, mode: Option<u32>, is_dir: bool) -> Self {
+        File {
+            path,
+            buffer,
+            mode,
+            is_dir,
+        }
     }
 
-    #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = "isDir"))]
-    pub fn is_dir(&self) -> bool {
-        self.path.ends_with("/")
-    }
+    // #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = "isDir"))]
+    // pub fn is_dir(&self) -> bool {
+    //     self.path.ends_with("/")
+    // }
 }
 
 #[cfg(feature = "wasm")]
@@ -137,10 +143,10 @@ impl File {
         self.path.clone()
     }
 
-    #[wasm_bindgen(getter = mode)]
-    pub fn get_mode(&self) -> Option<u32> {
-        self.mode
-    }
+    // #[wasm_bindgen(getter = mode)]
+    // pub fn get_mode(&self) -> Option<u32> {
+    //     self.mode
+    // }
 }
 
 pub trait Encode {

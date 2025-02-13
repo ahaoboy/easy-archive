@@ -48,6 +48,12 @@ jobs:
           echo "console.log(1+1)" > ./a.js
           ./mujs/mujs ./a.js
 
+          curl -L -o 7z.tar.xz https://github.com/ip7z/7zip/releases/download/24.09/7z2409-linux-x64.tar.xz
+          cargo run -- ./7z.tar.xz ./7z
+
+          curl -L -o bun.zip https://github.com/oven-sh/bun/releases/latest/download/bun-darwin-x64.zip
+          cargo run -- ./bun.zip ./bun
+
   js-test:
     strategy:
       matrix:
@@ -88,3 +94,9 @@ jobs:
           ls -lh ./mujs
           echo "console.log(1+1)" > ./a.js
           ./mujs/mujs ./a.js
+
+          curl -L -o 7z.tar.xz https://github.com/ip7z/7zip/releases/download/24.09/7z2409-linux-x64.tar.xz
+          node ./dist/cli.js ./7z.tar.xz ./7z
+
+          curl -L -o bun.zip https://github.com/oven-sh/bun/releases/latest/download/bun-darwin-x64.zip
+          node ./dist/cli.js ./bun.zip ./bun

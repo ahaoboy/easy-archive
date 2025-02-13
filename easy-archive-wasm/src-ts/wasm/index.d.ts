@@ -13,11 +13,12 @@ export enum Fmt {
 }
 export class File {
   free(): void;
-  constructor(path: string, buffer: Uint8Array, mode?: number | null);
-  isDir(): boolean;
+  constructor(path: string, buffer: Uint8Array, mode: number | null | undefined, is_dir: boolean);
+  get mode(): number | undefined;
+  set mode(value: number | null | undefined);
+  isDir: boolean;
   readonly buffer: Uint8Array;
   readonly path: string;
-  readonly mode: number | undefined;
 }
 export class Files {
   free(): void;

@@ -67,7 +67,7 @@ for (const i of files.keys()) {
   }
   const { path, buffer, mode } = file
   const v = [
-    modeToString(mode ?? 0, file.isDir()),
+    modeToString(mode ?? 0, file.isDir),
     humanSize(buffer.length),
     path,
   ]
@@ -97,11 +97,11 @@ if (output) {
       mkdirSync(outputDir, { recursive: true })
     }
 
-    if (file.isDir() && !existsSync(outputPath)) {
+    if (file.isDir && !existsSync(outputPath)) {
       mkdirSync(outputPath, { recursive: true })
     }
 
-    if (buffer.length && !file.isDir()) {
+    if (buffer.length && !file.isDir) {
       writeFileSync(outputPath, buffer)
     }
 

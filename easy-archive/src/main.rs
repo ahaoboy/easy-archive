@@ -50,7 +50,7 @@ fn main() {
         let mut info_list = vec![];
         for (path, file) in &files {
             info_list.push((
-                mode_to_string(file.mode.unwrap_or(0), file.is_dir()),
+                mode_to_string(file.mode.unwrap_or(0), file.is_dir),
                 human_size(file.buffer.len()),
                 path,
             ));
@@ -69,12 +69,12 @@ fn main() {
                 if !dir.exists() {
                     std::fs::create_dir_all(dir).expect("failed to create dir");
                 }
-                if file.is_dir() && !output_path.exists() {
+                if file.is_dir && !output_path.exists() {
                     std::fs::create_dir_all(&output_path).expect("failed to create dir");
                 }
 
                 let buffer = &file.buffer;
-                if !buffer.is_empty() && !file.is_dir() {
+                if !buffer.is_empty() && !file.is_dir {
                     std::fs::write(&output_path, buffer).expect("failed to write file");
                 }
 
