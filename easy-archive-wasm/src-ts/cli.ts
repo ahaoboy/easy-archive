@@ -1,12 +1,6 @@
-import {
-  chmodSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from 'fs'
-import { decode, guess } from './index'
-import { basename, dirname, join } from 'path'
+import { chmodSync, existsSync, mkdirSync, writeFileSync } from 'fs'
+import { extractTo } from './tool'
+import { dirname, join } from 'path'
 
 function modeToString(mode: number, isDir: boolean): string {
   if (mode < 0 || mode > 0o777) {
@@ -55,10 +49,13 @@ if (!path) {
   process.exit()
 }
 
-const name = basename(path)
-const buffer = new Uint8Array(readFileSync(path))
-const files = decode(guess(name)!, buffer)!
+const ret = extractTo(path)
+if (!ret) {
+  console.log(`failed to decode ${path}`)
+  process.exit()
+}
 
+const { files } = ret
 const infoList: string[][] = []
 for (const i of files.keys()) {
   const file = files.get(i)

@@ -8,6 +8,16 @@
   "author": "ahaoboy",
   "license": "MIT",
   "homepage": "https://github.com/ahaoboy/easy-archive",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./tool": {
+      "types": "./dist/tool.d.ts",
+      "import": "./dist/tool.js"
+    }
+  },
   "files": [
     "dist"
   ],
