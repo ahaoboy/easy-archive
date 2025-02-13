@@ -9,4 +9,6 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 wasm-bindgen = { workspace = true }
-easy-archive = { path = "../easy-archive", features = ["wasm"] }
+easy-archive = { path = "../easy-archive", features = [
+  "wasm",
+], default-features = false }

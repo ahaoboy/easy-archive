@@ -11,7 +11,9 @@ authors = { workspace = true }
 name = "easy-archive"
 
 [features]
+default = ["cli"]
 wasm = ["wasm-bindgen"]
+cli = ["rc-zip", "rc-zip-sync", "xz2"]
 
 [dependencies]
 tar = { workspace = true }
@@ -23,3 +25,6 @@ bzip2-rs = { workspace = true }
 wasm-bindgen = { workspace = true, optional = true }
 path-clean = { workspace = true }
 indexmap = { workspace = true }
+rc-zip = { workspace = true, optional = true }
+rc-zip-sync = { workspace = true, optional = true }
+xz2 = { workspace = true, optional = true }

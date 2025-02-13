@@ -1,18 +1,8 @@
-import {
-  chmodSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from 'fs'
-import { decode, guess } from './index'
-import { basename, dirname, join } from 'path'
+import { chmodSync, existsSync, mkdirSync, writeFileSync } from 'fs'
+import { extractTo } from './tool'
+import { dirname, join } from 'path'
 
 function modeToString(mode: number, isDir: boolean): string {
-  if (mode < 0 || mode > 0o777) {
-    throw new Error('Invalid mode: must be in range 0 to 0o777')
-  }
-
   const rwxMapping = [
     '---',
     '--x',
@@ -23,10 +13,9 @@ function modeToString(mode: number, isDir: boolean): string {
     'rw-',
     'rwx',
   ]
-
-  const owner = rwxMapping[(mode >> 6) & 0b111] // Owner permissions
-  const group = rwxMapping[(mode >> 3) & 0b111] // Group permissions
-  const others = rwxMapping[mode & 0b111] // Others permissions
+  const owner = rwxMapping[(mode >> 6) & 0b111]
+  const group = rwxMapping[(mode >> 3) & 0b111]
+  const others = rwxMapping[mode & 0b111]
   const d = isDir ? 'd' : '-'
   return `${d}${owner}${group}${others}`
 }
@@ -55,10 +44,13 @@ if (!path) {
   process.exit()
 }
 
-const name = basename(path)
-const buffer = new Uint8Array(readFileSync(path))
-const files = decode(guess(name)!, buffer)!
+const ret = extractTo(path)
+if (!ret) {
+  console.log(`failed to decode ${path}`)
+  process.exit()
+}
 
+const { files } = ret
 const infoList: string[][] = []
 for (const i of files.keys()) {
   const file = files.get(i)
@@ -67,7 +59,7 @@ for (const i of files.keys()) {
   }
   const { path, buffer, mode } = file
   const v = [
-    modeToString(mode ?? 0, file.isDir()),
+    modeToString(mode ?? 0, file.isDir),
     humanSize(buffer.length),
     path,
   ]
@@ -97,11 +89,11 @@ if (output) {
       mkdirSync(outputDir, { recursive: true })
     }
 
-    if (file.isDir() && !existsSync(outputPath)) {
+    if (file.isDir && !existsSync(outputPath)) {
       mkdirSync(outputPath, { recursive: true })
     }
 
-    if (buffer.length && !file.isDir()) {
+    if (buffer.length && !file.isDir) {
       writeFileSync(outputPath, buffer)
     }
 
