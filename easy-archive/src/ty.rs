@@ -123,11 +123,6 @@ impl File {
             is_dir,
         }
     }
-
-    // #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = "isDir"))]
-    // pub fn is_dir(&self) -> bool {
-    //     self.path.ends_with("/")
-    // }
 }
 
 #[cfg(feature = "wasm")]
