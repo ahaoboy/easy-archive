@@ -3,10 +3,6 @@ import { extractTo } from './tool'
 import { dirname, join } from 'path'
 
 function modeToString(mode: number, isDir: boolean): string {
-  if (mode < 0 || mode > 0o777) {
-    throw new Error('Invalid mode: must be in range 0 to 0o777')
-  }
-
   const rwxMapping = [
     '---',
     '--x',
@@ -17,10 +13,9 @@ function modeToString(mode: number, isDir: boolean): string {
     'rw-',
     'rwx',
   ]
-
-  const owner = rwxMapping[(mode >> 6) & 0b111] // Owner permissions
-  const group = rwxMapping[(mode >> 3) & 0b111] // Group permissions
-  const others = rwxMapping[mode & 0b111] // Others permissions
+  const owner = rwxMapping[(mode >> 6) & 0b111]
+  const group = rwxMapping[(mode >> 3) & 0b111]
+  const others = rwxMapping[mode & 0b111]
   const d = isDir ? 'd' : '-'
   return `${d}${owner}${group}${others}`
 }

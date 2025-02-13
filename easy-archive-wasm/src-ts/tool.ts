@@ -111,6 +111,7 @@ export function extractToByWasm(
   compressedFilePath: string,
   outputDir?: string,
 ): undefined | { outputDir: string; files: Files } {
+  console.log('--ext')
   const fmt = guess(compressedFilePath)
   if (!outputDir) {
     outputDir = join(tmpdir(), randomId())
@@ -127,6 +128,7 @@ export function extractToByWasm(
   }
   const buf = new Uint8Array(readFileSync(compressedFilePath))
   const files = decode(fmt, buf)
+  console.log('-0=-=files', files)
   if (!files) {
     console.log('failed to decode')
     return undefined
@@ -161,8 +163,14 @@ export function extractTo(compressedFilePath: string, outputDir?: string): {
   files: Files
 } | undefined {
   try {
-    return extractToByWasm(compressedFilePath, outputDir)
+    const r = extractToByWasm(compressedFilePath, outputDir)
+    console.log(r)
+    if (r) {
+      return r
+    }
+    return extractToByShell(compressedFilePath, outputDir)
   } catch {
+    console.log('==-=-=-=-=-=-=-')
     return extractToByShell(compressedFilePath, outputDir)
   }
 }
