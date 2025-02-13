@@ -100,7 +100,7 @@ export function extractToByShell(
       }
     }
   }
-  const files = createFiles(outputDir)
+  const files = createFiles(oriDir)
   if (needCopy && tmpDir !== oriDir) {
     cpSync(tmpDir, oriDir, { recursive: true })
   }

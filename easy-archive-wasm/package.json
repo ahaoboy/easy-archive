@@ -18,6 +18,16 @@
       "import": "./dist/tool.js"
     }
   },
+  "typesVersions": {
+    "*": {
+      ".": [
+        "./dist/index.d.ts"
+      ],
+      "./tool": [
+        "./dist/tool.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist"
   ],
