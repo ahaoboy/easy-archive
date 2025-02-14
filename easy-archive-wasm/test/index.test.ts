@@ -39,8 +39,8 @@ test('extension', () => {
 
 test('files', () => {
   const files = new Files()
-  files.insert('a', new File('a', new Uint8Array(), 0))
+  files.insert('a', new File('a', new Uint8Array(), 0, false))
   expect(files.keys()).toEqual(['a'])
-  files.insert('b', new File('b', new Uint8Array(), 0))
+  files.insert('b', new File('b', new Uint8Array(), 0, false))
   expect(files.keys()).toEqual(['a', 'b'])
 })

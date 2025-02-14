@@ -170,3 +170,69 @@ export function extractTo(compressedFilePath: string, outputDir?: string): {
     return extractToByShell(compressedFilePath, outputDir)
   }
 }
+
+export function getFetchOption() {
+  const headers: HeadersInit = {
+    'User-Agent': 'GitHub Actions',
+  }
+  if (process.env.GITHUB_TOKEN) {
+    headers.Authorization = `token ${process.env.GITHUB_TOKEN}`
+  }
+  return {
+    headers,
+  }
+}
+export async function downloadToFile(url: string, outputPath?: string) {
+  if (!outputPath) {
+    const name = url.split('/').at(-1)!
+    const dir = join(tmpdir(), randomId())
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true })
+    }
+    outputPath = join(dir, name)
+  }
+  outputPath = outputPath.replaceAll('\\', '/')
+  const dir = outputPath.split('/').slice(0, -1).join('/')
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true })
+  }
+  const response = await fetch(url, getFetchOption())
+  const buf = await response.arrayBuffer()
+  writeFileSync(outputPath, Buffer.from(buf))
+  return outputPath
+}
+
+export function modeToString(mode: number, isDir: boolean): string {
+  const rwxMapping = [
+    '---',
+    '--x',
+    '-w-',
+    '-wx',
+    'r--',
+    'r-x',
+    'rw-',
+    'rwx',
+  ]
+  const owner = rwxMapping[(mode >> 6) & 0b111]
+  const group = rwxMapping[(mode >> 3) & 0b111]
+  const others = rwxMapping[mode & 0b111]
+  const d = isDir ? 'd' : '-'
+  return `${d}${owner}${group}${others}`
+}
+
+export function humanSize(bytes: number): string {
+  if (bytes < 0) {
+    throw new Error('Size must be non-negative')
+  }
+
+  const units = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+  let index = 0
+  let size = bytes
+
+  while (size >= 1024 && index < units.length - 1) {
+    size /= 1024
+    index++
+  }
+
+  return `${parseFloat(size.toPrecision(2))}${units[index]}`
+}

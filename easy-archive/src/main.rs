@@ -1,46 +1,8 @@
-use easy_archive::ty::Fmt;
+use easy_archive::{
+    tool::{human_size, mode_to_string},
+    ty::Fmt,
+};
 use path_clean::PathClean;
-
-fn mode_to_string(mode: u32, is_dir: bool) -> String {
-    if mode > 0o777 {
-        panic!("Invalid mode: must be in range 0 to 0o777");
-    }
-
-    let rwx_mapping = ["---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"];
-
-    let owner = rwx_mapping[((mode >> 6) & 0b111) as usize]; // Owner permissions
-    let group = rwx_mapping[((mode >> 3) & 0b111) as usize]; // Group permissions
-    let others = rwx_mapping[(mode & 0b111) as usize]; // Others permissions
-    let d = if is_dir { "d" } else { "-" };
-    format!("{}{}{}{}", d, owner, group, others)
-}
-
-fn round_sig(value: f64, sig: u32) -> f64 {
-    if value == 0.0 {
-        return 0.0;
-    }
-    let order = value.abs().log10().floor();
-    let factor = 10f64.powf(order - (sig as f64) + 1.0);
-    (value / factor).round() * factor
-}
-
-pub fn human_size(bytes: usize) -> String {
-    if bytes == 0 {
-        return "0".to_string();
-    }
-
-    let units = ["", "K", "M", "G", "T", "P", "E", "Z", "Y"];
-    let b = bytes as f64;
-    let exponent = (b.log(1024.0)).floor() as usize;
-    let value = b / 1024f64.powi(exponent as i32);
-    let rounded = round_sig(value, 2);
-
-    if (rounded - rounded.floor()).abs() < 1e-10 {
-        format!("{}{}", rounded as u64, units[exponent])
-    } else {
-        format!("{}{}", rounded, units[exponent])
-    }
-}
 
 fn main() {
     if let Some(path) = std::env::args().nth(1) {
