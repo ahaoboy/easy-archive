@@ -1,4 +1,7 @@
-use crate::ty::{Decode, File, Files};
+use crate::{
+    tool::clean,
+    ty::{Decode, File, Files},
+};
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 use zip::ZipArchive;
 
@@ -15,12 +18,10 @@ fn decode_zip(buffer: &[u8]) -> Option<Files> {
         if file.is_file() {
             let mut buffer = vec![];
             file.read_to_end(&mut buffer).ok()?;
-            let name = file.name();
-            let is_dir = name.ends_with("/");
-            files.insert(
-                name.to_string(),
-                File::new(name.to_string(), buffer.clone(), None, is_dir),
-            );
+            let path = file.name();
+            let is_dir = path.ends_with("/");
+            let path = clean(path);
+            files.insert(path.clone(), File::new(path, buffer.clone(), None, is_dir));
         }
     }
     Some(files)
@@ -33,9 +34,10 @@ fn decode_rc_zip(buffer: &[u8]) -> Option<Files> {
     let mut files = Files::new();
     for entry in reader.entries() {
         let path = entry.name.clone();
-        let buffer = entry.bytes().unwrap();
+        let buffer = entry.bytes().ok()?;
         let mode = entry.mode.0;
         let is_dir = matches!(entry.kind(), rc_zip::parse::EntryKind::Directory);
+        let path = clean(&path);
         files.insert(
             path.clone(),
             File {

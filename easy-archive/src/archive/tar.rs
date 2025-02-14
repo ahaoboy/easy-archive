@@ -1,4 +1,7 @@
-use crate::ty::{Decode, File, Files};
+use crate::{
+    tool::clean,
+    ty::{Decode, File, Files},
+};
 use std::io::{Cursor, Read};
 use tar::Archive;
 
@@ -20,6 +23,7 @@ impl Decode for Tar {
             file.read_to_end(&mut buffer).expect("failed to read file");
             let mode = file.header().mode().ok();
             let is_dir = path.ends_with("/");
+            let path = clean(&path);
             files.insert(path.clone(), File::new(path, buffer, mode, is_dir));
         }
         Some(files)
