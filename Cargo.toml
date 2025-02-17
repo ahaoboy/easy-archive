@@ -10,6 +10,7 @@ description = "easy-archive"
 repository = "https://github.com/ahaoboy/easy-archive"
 homepage = "https://github.com/ahaoboy/easy-archive"
 authors = ["ahaoboy"]
+include = ["easy-archive", "Cargo.toml", "README.md"]
 
 [workspace.dependencies]
 wasm-bindgen = { version = "0.2" }
