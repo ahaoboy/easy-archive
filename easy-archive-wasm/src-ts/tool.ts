@@ -128,7 +128,6 @@ export function extractToByWasm(
   const buf = new Uint8Array(readFileSync(compressedFilePath))
   const files = decode(fmt, buf)
   if (!files) {
-    console.log('failed to decode')
     return undefined
   }
   for (const i of files.keys()) {
