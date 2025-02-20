@@ -54,6 +54,9 @@ jobs:
           curl -L -o bun.zip https://github.com/oven-sh/bun/releases/latest/download/bun-darwin-x64.zip
           cargo run -- ./bun.zip ./bun
 
+          curl -L -o spidermonkey.tar.xz https://github.com/ahaoboy/spidermonkey-build/releases/download/v0.1.5/spidermonkey-x86_64-unknown-linux-gnu.tar.xz
+          cargo run -- ./spidermonkey.tar.xz ./spidermonkey
+
   js-test:
     strategy:
       matrix:
@@ -100,3 +103,6 @@ jobs:
 
           curl -L -o bun.zip https://github.com/oven-sh/bun/releases/latest/download/bun-darwin-x64.zip
           node ./dist/cli.js ./bun.zip ./bun
+
+          curl -L -o spidermonkey.tar.xz https://github.com/ahaoboy/spidermonkey-build/releases/download/v0.1.5/spidermonkey-x86_64-unknown-linux-gnu.tar.xz
+          node ./dist/cli.js ./spidermonkey.tar.xz ./spidermonkey

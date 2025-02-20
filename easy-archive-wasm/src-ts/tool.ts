@@ -78,7 +78,7 @@ export function extractToByShell(
     },
     {
       ext: ['.tar', '.tar.xz'],
-      cmd: `tar -xf "${compressedFilePath}" -C "${outputDir}"`,
+      cmd: `tar -xJf "${compressedFilePath}" -C "${outputDir}"`,
     },
     {
       ext: ['.tar.gz', '.tgz'],
@@ -107,10 +107,16 @@ export function extractToByShell(
   return { outputDir: oriDir, files }
 }
 
+// 100mb
+const MAX_SIZE = 1024 * 1024 * 100;
 export function extractToByWasm(
   compressedFilePath: string,
   outputDir?: string,
 ): undefined | { outputDir: string; files: Files } {
+  const buf = new Uint8Array(readFileSync(compressedFilePath))
+  if (buf.length > MAX_SIZE) {
+    return
+  }
   const fmt = guess(compressedFilePath)
   if (!outputDir) {
     outputDir = join(tmpdir(), randomId())
@@ -125,7 +131,6 @@ export function extractToByWasm(
   if (!existsSync(outputDir)) {
     mkdirSync(outputDir, { recursive: true })
   }
-  const buf = new Uint8Array(readFileSync(compressedFilePath))
   const files = decode(fmt, buf)
   if (!files) {
     return undefined
