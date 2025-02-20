@@ -58,7 +58,7 @@ if (output) {
       mkdirSync(outputPath, { recursive: true })
     }
 
-    if (buffer.length && !file.isDir) {
+    if (!file.isDir) {
       writeFileSync(outputPath, buffer)
     }
 
