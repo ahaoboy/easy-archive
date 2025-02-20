@@ -36,7 +36,7 @@ fn main() {
                 }
 
                 let buffer = &file.buffer;
-                if !buffer.is_empty() && !file.is_dir {
+                if !file.is_dir {
                     std::fs::write(&output_path, buffer).expect("failed to write file");
                 }
 
