@@ -37,20 +37,21 @@ const sizeMaxLen = infoList.reduce(
   (pre, cur) => Math.max(pre, cur[1].length),
   0,
 )
-const pathMaxLen = infoList.reduce(
-  (pre, cur) => Math.max(pre, cur[0].length),
-  0,
-)
+
 console.log(`Total ${humanSize(totalSize)} By ${type.toUpperCase()}`)
 
 for (const [a, b, c] of infoList) {
-  console.log(a.padEnd(pathMaxLen, ' '), b.padStart(sizeMaxLen, ' '), c)
+  console.log(a, b.padStart(sizeMaxLen, ' '), c)
 }
 
 const output = process.argv[3]
 
 if (output) {
   console.log('decompress to', output)
+  const pathMaxLen = keys.reduce(
+    (pre, cur) => Math.max(pre, cur.length),
+    0,
+  )
   for (const i of keys) {
     const file = files.get(i)
     if (!file) {
@@ -75,6 +76,6 @@ if (output) {
       chmodSync(outputPath, mode)
     }
 
-    console.log(`${path} -> ${outputPath}`)
+    console.log(`${path.padEnd(pathMaxLen, ' ')} -> ${outputPath}`)
   }
 }
