@@ -4,6 +4,8 @@ use easy_archive::{
 };
 use path_clean::PathClean;
 
+const MAX_FILE_COUNT: usize = 32;
+
 fn main() {
     if let Some(path) = std::env::args().nth(1) {
         let buffer = std::fs::read(&path).expect("failed to read file");
@@ -11,6 +13,7 @@ fn main() {
         let files = fmt.decode(buffer).expect("failed to decode");
         let mut info_list = vec![];
         let mut total_size = 0;
+        let file_count = files.keys().len();
         for (path, file) in &files {
             let size = file.buffer.len();
             info_list.push((
@@ -20,12 +23,15 @@ fn main() {
             ));
             total_size += size;
         }
-        println!("total {}", human_size(total_size));
+        println!("{} of {} files", human_size(total_size), file_count);
         let size_max_len = info_list.iter().fold(0, |pre, cur| pre.max(cur.1.len()));
-        for (a, b, c) in info_list {
-            let n = b.len();
-            println!("{} {} {}", a, " ".repeat(size_max_len - n) + &b, c);
+        if file_count <= MAX_FILE_COUNT {
+            for (a, b, c) in info_list {
+                let n = b.len();
+                println!("{} {} {}", a, " ".repeat(size_max_len - n) + &b, c);
+            }
         }
+
         if let Some(output) = std::env::args().nth(2) {
             println!("decompress to {}", output);
             let path_max_len = files.keys().iter().fold(0, |pre, cur| pre.max(cur.len()));
@@ -53,12 +59,16 @@ fn main() {
                     )
                     .expect("failed to set permissions");
                 }
-
-                println!(
-                    "{} -> {}",
-                    path.to_owned() + &" ".repeat(path_max_len - path.len()),
-                    output_path.to_string_lossy(),
-                )
+                if file_count <= MAX_FILE_COUNT {
+                    println!(
+                        "{} -> {}",
+                        path.to_owned() + &" ".repeat(path_max_len - path.len()),
+                        output_path.to_string_lossy(),
+                    )
+                }
+            }
+            if file_count > MAX_FILE_COUNT {
+                println!("decompress ${} files to {}", file_count, output);
             }
         }
     } else {

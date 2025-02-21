@@ -3,6 +3,7 @@ import { extractTo, humanSize, modeToString } from './tool'
 import { dirname, join } from 'path'
 
 const path = process.argv[2]
+const MAX_FILE_COUNT = 32
 
 if (!path) {
   console.log('usage:\neasy-archive <file> [dir]')
@@ -37,15 +38,17 @@ const sizeMaxLen = infoList.reduce(
   (pre, cur) => Math.max(pre, cur[1].length),
   0,
 )
+console.log(
+  `${humanSize(totalSize)} of ${keys.length} files By ${type.toUpperCase()}`,
+)
 
-console.log(`total ${humanSize(totalSize)} By ${type.toUpperCase()}`)
-
-for (const [a, b, c] of infoList) {
-  console.log(a, b.padStart(sizeMaxLen, ' '), c)
+if (keys.length <= MAX_FILE_COUNT) {
+  for (const [a, b, c] of infoList) {
+    console.log(a, b.padStart(sizeMaxLen, ' '), c)
+  }
 }
 
 const output = process.argv[3]
-
 if (output) {
   console.log('decompress to', output)
   const pathMaxLen = keys.reduce(
@@ -75,7 +78,11 @@ if (output) {
     if (mode && process.platform !== 'win32') {
       chmodSync(outputPath, mode)
     }
-
-    console.log(`${path.padEnd(pathMaxLen, ' ')} -> ${outputPath}`)
+    if (keys.length <= MAX_FILE_COUNT) {
+      console.log(`${path.padEnd(pathMaxLen, ' ')} -> ${outputPath}`)
+    }
+  }
+  if (keys.length > MAX_FILE_COUNT) {
+    console.log(`decompress ${keys.length} files to ${output}`)
   }
 }
