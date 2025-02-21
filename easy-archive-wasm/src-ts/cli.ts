@@ -15,15 +15,17 @@ if (!ret) {
   process.exit()
 }
 
-const { files } = ret
+const { files, type } = ret
 const infoList: string[][] = []
-
-for (const i of files.keys()) {
+const keys = files.keys()
+let totalSize = 0
+for (const i of keys) {
   const file = files.get(i)
   if (!file) {
     continue
   }
   const { path, mode, isDir, buffer } = file
+  totalSize += buffer.length
   const v = [
     modeToString(mode ?? 0, isDir),
     humanSize(buffer.length),
@@ -35,6 +37,9 @@ const sizeMaxLen = infoList.reduce(
   (pre, cur) => Math.max(pre, cur[1].length),
   0,
 )
+
+console.log(`Total ${humanSize(totalSize)} By ${type.toUpperCase()}`)
+
 for (const [a, b, c] of infoList) {
   console.log(a, b.padStart(sizeMaxLen, ' '), c)
 }
@@ -43,7 +48,7 @@ const output = process.argv[3]
 
 if (output) {
   console.log('decompress to', output)
-  for (const i of files.keys()) {
+  for (const i of keys) {
     const file = files.get(i)
     if (!file) {
       continue

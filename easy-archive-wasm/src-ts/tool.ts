@@ -166,15 +166,18 @@ export function extractToByWasm(
 export function extractTo(compressedFilePath: string, outputDir?: string): {
   outputDir: string
   files: JsFiles
+  type: 'wasm' | 'shell'
 } | undefined {
   try {
     const r = extractToByWasm(compressedFilePath, outputDir)
     if (r) {
-      return r
+      return { ...r, type: 'wasm' }
     }
-    return extractToByShell(compressedFilePath, outputDir)
   } catch {
-    return extractToByShell(compressedFilePath, outputDir)
+  }
+  const r = extractToByShell(compressedFilePath, outputDir)
+  if (r) {
+    return { ...r, type: 'shell' }
   }
 }
 
