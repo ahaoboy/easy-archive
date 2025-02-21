@@ -43,11 +43,15 @@
     "copy:wasm": "cp ./src-ts/wasm ./dist -r",
     "build:lib": "tsc",
     "build:cli": "esbuild ./src-ts/cli.ts --bundle --outdir=./dist --platform=node",
-    "build": "pnpm run build:wasm && pnpm run build:inline && pnpm run build:lib && pnpm run build:cli && pnpm run copy:wasm",
+    "build": "pnpm run build:lib && pnpm run build:cli",
+    "build:full": "pnpm run build:wasm && pnpm run build:inline && pnpm run build:lib && pnpm run build:cli && pnpm run copy:wasm",
     "build:wasm": "wasm-pack build --target=web --out-dir ./web --release",
     "build:inline": " wasm-pack-inline ./web -d ./src-ts/wasm --name index"
   },
   "keywords": [
     "easy-archive"
-  ]
+  ],
+  "dependencies": {
+    "@ant-design/icons": "^5.6.1"
+  }
 }

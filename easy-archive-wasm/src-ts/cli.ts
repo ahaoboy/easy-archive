@@ -1,6 +1,7 @@
 import { chmodSync, existsSync, mkdirSync, writeFileSync } from 'fs'
-import { extractTo, humanSize, modeToString } from './tool'
+import { extractTo } from './tool'
 import { dirname, join } from 'path'
+import { humanSize, modeToString } from './index'
 
 const path = process.argv[2]
 const MAX_FILE_COUNT = 32
