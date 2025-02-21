@@ -38,7 +38,7 @@ const sizeMaxLen = infoList.reduce(
   0,
 )
 
-console.log(`Total ${humanSize(totalSize)} By ${type.toUpperCase()}`)
+console.log(`total ${humanSize(totalSize)} By ${type.toUpperCase()}`)
 
 for (const [a, b, c] of infoList) {
   console.log(a, b.padStart(sizeMaxLen, ' '), c)

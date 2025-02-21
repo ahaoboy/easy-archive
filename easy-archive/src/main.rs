@@ -20,7 +20,7 @@ fn main() {
             ));
             total_size += size;
         }
-        println!("Total {}", human_size(total_size));
+        println!("total {}", human_size(total_size));
         let size_max_len = info_list.iter().fold(0, |pre, cur| pre.max(cur.1.len()));
         for (a, b, c) in info_list {
             let n = b.len();
