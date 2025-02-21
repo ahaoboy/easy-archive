@@ -44,12 +44,12 @@ const output = process.argv[3]
 if (output) {
   console.log('decompress to', output)
   for (const i of files.keys()) {
-    const file = files[i]
+    const file = files.get(i)
     if (!file) {
       continue
     }
     const { path, buffer, isDir, mode } = file
-    const outputPath = join(output, path)
+    const outputPath = join(output, path).replaceAll('\\', '/')
     const outputDir = dirname(outputPath)
     if (!existsSync(outputDir)) {
       mkdirSync(outputDir, { recursive: true })
