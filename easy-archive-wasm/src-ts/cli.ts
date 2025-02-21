@@ -15,16 +15,19 @@ if (!ret) {
   process.exit()
 }
 
-const { files } = ret
+const { files, type } = ret
 const infoList: string[][] = []
-for (const i of files.keys()) {
+const keys = files.keys()
+let totalSize = 0
+for (const i of keys) {
   const file = files.get(i)
   if (!file) {
     continue
   }
-  const { path, buffer, mode } = file
+  const { path, mode, isDir, buffer } = file
+  totalSize += buffer.length
   const v = [
-    modeToString(mode ?? 0, file.isDir),
+    modeToString(mode ?? 0, isDir),
     humanSize(buffer.length),
     path,
   ]
@@ -34,6 +37,9 @@ const sizeMaxLen = infoList.reduce(
   (pre, cur) => Math.max(pre, cur[1].length),
   0,
 )
+
+console.log(`total ${humanSize(totalSize)} By ${type.toUpperCase()}`)
+
 for (const [a, b, c] of infoList) {
   console.log(a, b.padStart(sizeMaxLen, ' '), c)
 }
@@ -42,23 +48,27 @@ const output = process.argv[3]
 
 if (output) {
   console.log('decompress to', output)
-  for (const i of files.keys()) {
+  const pathMaxLen = keys.reduce(
+    (pre, cur) => Math.max(pre, cur.length),
+    0,
+  )
+  for (const i of keys) {
     const file = files.get(i)
     if (!file) {
       continue
     }
-    const { path, buffer, mode } = file
-    const outputPath = join(output, path)
+    const { path, buffer, isDir, mode } = file
+    const outputPath = join(output, path).replaceAll('\\', '/')
     const outputDir = dirname(outputPath)
     if (!existsSync(outputDir)) {
       mkdirSync(outputDir, { recursive: true })
     }
 
-    if (file.isDir && !existsSync(outputPath)) {
+    if (isDir && !existsSync(outputPath)) {
       mkdirSync(outputPath, { recursive: true })
     }
 
-    if (!file.isDir) {
+    if (!isDir) {
       writeFileSync(outputPath, buffer)
     }
 
@@ -66,6 +76,6 @@ if (output) {
       chmodSync(outputPath, mode)
     }
 
-    console.log(`${path} -> ${outputPath}`)
+    console.log(`${path.padEnd(pathMaxLen, ' ')} -> ${outputPath}`)
   }
 }

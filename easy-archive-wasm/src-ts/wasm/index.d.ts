@@ -24,7 +24,7 @@ export class Files {
   free(): void;
   constructor();
   get(path: string): File | undefined;
-  insert(name: string, file: File): File | undefined;
+  insert(path: string, file: File): File | undefined;
   keys(): string[];
 }
 

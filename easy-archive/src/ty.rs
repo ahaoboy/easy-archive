@@ -30,8 +30,8 @@ impl Files {
         self.0.get(path).cloned()
     }
 
-    pub fn insert(&mut self, name: String, file: File) -> Option<File> {
-        self.0.insert(name, file)
+    pub fn insert(&mut self, path: String, file: File) -> Option<File> {
+        self.0.insert(path, file)
     }
 
     pub fn keys(&self) -> Vec<String> {
@@ -128,9 +128,11 @@ impl File {
 #[cfg(feature = "wasm")]
 #[wasm_bindgen]
 impl File {
+    // To reduce memory consumption
+    // get buffer should be placed last
     #[wasm_bindgen(getter = buffer)]
-    pub fn get_buffer(&self) -> Vec<u8> {
-        self.buffer.clone()
+    pub fn get_buffer(self) -> Vec<u8> {
+        self.buffer
     }
 
     #[wasm_bindgen(getter = path)]

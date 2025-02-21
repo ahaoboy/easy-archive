@@ -38,7 +38,9 @@ jobs:
       - name: cargo test
         run: |
           cargo test
-
+      - name: cargo run
+        run: |
+          cargo run
       - name: test cli
         run: |
           cd easy-archive
