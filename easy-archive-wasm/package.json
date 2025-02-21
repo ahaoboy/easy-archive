@@ -1,6 +1,6 @@
 {
   "name": "@easy-install/easy-archive",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "easy-archive",
   "main": "dist/index.js",
   "bin": "./dist/cli.js",

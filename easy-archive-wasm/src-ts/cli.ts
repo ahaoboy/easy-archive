@@ -17,14 +17,15 @@ if (!ret) {
 
 const { files } = ret
 const infoList: string[][] = []
+
 for (const i of files.keys()) {
   const file = files.get(i)
   if (!file) {
     continue
   }
-  const { path, buffer, mode } = file
+  const { path, mode, isDir, buffer } = file
   const v = [
-    modeToString(mode ?? 0, file.isDir),
+    modeToString(mode ?? 0, isDir),
     humanSize(buffer.length),
     path,
   ]
@@ -43,22 +44,22 @@ const output = process.argv[3]
 if (output) {
   console.log('decompress to', output)
   for (const i of files.keys()) {
-    const file = files.get(i)
+    const file = files[i]
     if (!file) {
       continue
     }
-    const { path, buffer, mode } = file
+    const { path, buffer, isDir, mode } = file
     const outputPath = join(output, path)
     const outputDir = dirname(outputPath)
     if (!existsSync(outputDir)) {
       mkdirSync(outputDir, { recursive: true })
     }
 
-    if (file.isDir && !existsSync(outputPath)) {
+    if (isDir && !existsSync(outputPath)) {
       mkdirSync(outputPath, { recursive: true })
     }
 
-    if (!file.isDir) {
+    if (!isDir) {
       writeFileSync(outputPath, buffer)
     }
 
