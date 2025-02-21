@@ -37,11 +37,14 @@ const sizeMaxLen = infoList.reduce(
   (pre, cur) => Math.max(pre, cur[1].length),
   0,
 )
-
+const pathMaxLen = infoList.reduce(
+  (pre, cur) => Math.max(pre, cur[0].length),
+  0,
+)
 console.log(`Total ${humanSize(totalSize)} By ${type.toUpperCase()}`)
 
 for (const [a, b, c] of infoList) {
-  console.log(a, b.padStart(sizeMaxLen, ' '), c)
+  console.log(a.padEnd(pathMaxLen, ' '), b.padStart(sizeMaxLen, ' '), c)
 }
 
 const output = process.argv[3]
