@@ -1,5 +1,10 @@
 import React, { useState } from 'react'
-import { decode, guess, humanSize, modeToString } from '../../easy-archive-wasm'
+import {
+  decode,
+  guess,
+  humanSize,
+  modeToString,
+} from '@easy-install/easy-archive'
 import { Button, Spin, Table, type TableProps } from 'antd'
 import { DownloadOutlined, InboxOutlined } from '@ant-design/icons'
 import { Upload } from 'antd'
