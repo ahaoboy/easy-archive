@@ -10,13 +10,17 @@ fn main() {
         let fmt = Fmt::guess(&path).expect("failed to guess format");
         let files = fmt.decode(buffer).expect("failed to decode");
         let mut info_list = vec![];
+        let mut total_size = 0;
         for (path, file) in &files {
+            let size = file.buffer.len();
             info_list.push((
                 mode_to_string(file.mode.unwrap_or(0), file.is_dir),
-                human_size(file.buffer.len()),
+                human_size(size),
                 path,
             ));
+            total_size += size;
         }
+        println!("Total {}", human_size(total_size));
         let size_max_len = info_list.iter().fold(0, |pre, cur| pre.max(cur.1.len()));
         for (a, b, c) in info_list {
             let n = b.len();
@@ -24,6 +28,7 @@ fn main() {
         }
         if let Some(output) = std::env::args().nth(2) {
             println!("decompress to {}", output);
+            let path_max_len = files.keys().iter().fold(0, |pre, cur| pre.max(cur.len()));
             for (path, file) in &files {
                 let output_path = std::path::Path::new(&output).clean();
                 let output_path = output_path.join(path).clean();
@@ -49,7 +54,11 @@ fn main() {
                     .expect("failed to set permissions");
                 }
 
-                println!("{} -> {}", path, output_path.to_string_lossy(),)
+                println!(
+                    "{} -> {}",
+                    path.to_owned() + &" ".repeat(path_max_len - path.len()),
+                    output_path.to_string_lossy(),
+                )
             }
         }
     } else {
