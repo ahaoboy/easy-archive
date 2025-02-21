@@ -5,7 +5,7 @@
   "scripts": {
     "update-assets": "bash scripts/update-assets.sh",
     "pre-check": "cargo fmt && cargo clippy --fix --allow-dirty --allow-staged && cargo test && npm run format",
-    "build": "pnpm run --parallel build",
+    "build": "pnpm run -r build",
     "test": "pnpm run --parallel test",
     "test:run": "pnpm run --parallel test:run",
     "format": "deno fmt --ignore=easy-archive-wasm/src-ts/wasm --indent-width=2 --no-semicolons --single-quote"
