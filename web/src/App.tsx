@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import {
   decode,
+  extensions,
+  Fmt,
   guess,
   humanSize,
   modeToString,
@@ -23,6 +25,15 @@ function downloadBinaryFile(fileName: string, content: ArrayBuffer): void {
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
 }
+
+const SupportFormat = [
+  Fmt.Tar,
+  Fmt.TarBz,
+  Fmt.TarGz,
+  Fmt.TarXz,
+  Fmt.TarZstd,
+  Fmt.Zip,
+].map((i) => extensions(i)).flat().join(', ')
 
 const columns: TableProps<FileType>['columns'] = [
   {
@@ -122,11 +133,10 @@ const App: React.FC = () => {
           <InboxOutlined />
         </p>
         <p className='ant-upload-text'>
-          Click or drag file to this area to upload
+          Click or drag archive file to this area to upload
         </p>
         <p className='ant-upload-hint'>
-          Support for a single or bulk upload. Strictly prohibited from
-          uploading company data or other banned files.
+          Support format: {SupportFormat}
         </p>
       </Dragger>
 
