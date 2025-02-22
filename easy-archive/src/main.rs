@@ -62,7 +62,7 @@ fn main() {
                 if file_count <= MAX_FILE_COUNT {
                     println!(
                         "{} -> {}",
-                        path.to_owned() + &" ".repeat(path_max_len - path.len()),
+                        file.path.to_owned() + &" ".repeat(path_max_len - file.path.len()),
                         output_path.to_string_lossy(),
                     )
                 }

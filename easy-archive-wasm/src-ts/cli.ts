@@ -19,13 +19,8 @@ if (!ret) {
 
 const { files, type } = ret
 const infoList: string[][] = []
-const keys = files.keys()
 let totalSize = 0
-for (const i of keys) {
-  const file = files.get(i)
-  if (!file) {
-    continue
-  }
+for (const file of files) {
   const { path, mode, isDir, buffer } = file
   totalSize += buffer.length
   const v = [
@@ -40,10 +35,10 @@ const sizeMaxLen = infoList.reduce(
   0,
 )
 console.log(
-  `${humanSize(totalSize)} of ${keys.length} files By ${type.toUpperCase()}`,
+  `${humanSize(totalSize)} of ${files.length} files By ${type.toUpperCase()}`,
 )
 
-if (keys.length <= MAX_FILE_COUNT) {
+if (files.length <= MAX_FILE_COUNT) {
   for (const [a, b, c] of infoList) {
     console.log(a, b.padStart(sizeMaxLen, ' '), c)
   }
@@ -52,15 +47,11 @@ if (keys.length <= MAX_FILE_COUNT) {
 const output = process.argv[3]
 if (output) {
   console.log('decompress to', output)
-  const pathMaxLen = keys.reduce(
-    (pre, cur) => Math.max(pre, cur.length),
+  const pathMaxLen = files.reduce(
+    (pre, cur) => Math.max(pre, cur.path.length),
     0,
   )
-  for (const i of keys) {
-    const file = files.get(i)
-    if (!file) {
-      continue
-    }
+  for (const file of files) {
     const { path, buffer, isDir, mode } = file
     const outputPath = join(output, path).replaceAll('\\', '/')
     const outputDir = dirname(outputPath)
@@ -79,11 +70,11 @@ if (output) {
     if (mode && process.platform !== 'win32') {
       chmodSync(outputPath, mode)
     }
-    if (keys.length <= MAX_FILE_COUNT) {
+    if (files.length <= MAX_FILE_COUNT) {
       console.log(`${path.padEnd(pathMaxLen, ' ')} -> ${outputPath}`)
     }
   }
-  if (keys.length > MAX_FILE_COUNT) {
-    console.log(`decompress ${keys.length} files to ${output}`)
+  if (files.length > MAX_FILE_COUNT) {
+    console.log(`decompress ${files.length} files to ${output}`)
   }
 }

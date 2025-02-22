@@ -12,7 +12,7 @@ import { decode, guess } from './wasm'
 import { dirname, join, relative } from 'path'
 import { tmpdir } from 'os'
 import { execSync } from 'child_process'
-import { JsFile, JsFiles } from './file'
+import { JsFile } from './file'
 
 export function isMsys() {
   return !!process.env['MSYSTEM']
@@ -28,8 +28,8 @@ export function randomId() {
   return Math.random().toString(36).slice(2)
 }
 
-export function createFiles(dir: string): JsFiles {
-  const files = new JsFiles()
+export function createFiles(dir: string): JsFile[] {
+  const files: JsFile[] = []
   async function dfs(currentPath: string) {
     const entries = readdirSync(currentPath)
     for (const entry of entries) {
@@ -42,7 +42,7 @@ export function createFiles(dir: string): JsFiles {
         const relativePath = relative(dir, fullPath).replaceAll('\\', '/')
         const buffer = readFileSync(fullPath)
         const file = new JsFile(relativePath, buffer, stat.mode, false)
-        files.insert(relativePath, file)
+        files.push(file)
       }
     }
   }
@@ -53,7 +53,7 @@ export function createFiles(dir: string): JsFiles {
 export function extractToByShell(
   compressedFilePath: string,
   outputDir?: string,
-): undefined | { outputDir: string; files: JsFiles } {
+): undefined | { outputDir: string; files: JsFile[] } {
   const tmpDir = join(tmpdir(), randomId())
   let oriDir = outputDir ?? tmpDir
   const needCopy = !!outputDir
@@ -113,7 +113,7 @@ const MAX_SIZE = 1024 * 1024 * 256
 export function extractToByWasm(
   compressedFilePath: string,
   outputDir?: string,
-): undefined | { outputDir: string; files: JsFiles } {
+): undefined | { outputDir: string; files: JsFile[] } {
   const buf = new Uint8Array(readFileSync(compressedFilePath))
   if (buf.length > MAX_SIZE) {
     return
@@ -136,10 +136,10 @@ export function extractToByWasm(
   if (!files) {
     return undefined
   }
-  const jsFiles = new JsFiles()
+  const jsFiles: JsFile[] = []
   for (const file of files) {
     const { path, mode, isDir, buffer } = file
-    jsFiles.insert(path, new JsFile(path, buffer, mode, isDir))
+    jsFiles.push(new JsFile(path, buffer, mode, isDir))
     const outputPath = join(outputDir, path)
     if (path.endsWith('/') || isDir) {
       mkdirSync(outputPath, { recursive: true })
@@ -160,7 +160,7 @@ export function extractToByWasm(
 
 export function extractTo(compressedFilePath: string, outputDir?: string): {
   outputDir: string
-  files: JsFiles
+  files: JsFile[]
   type: 'wasm' | 'shell'
 } | undefined {
   try {

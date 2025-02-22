@@ -57,8 +57,8 @@ test('toMsysPath', () => {
 })
 test('createFiles', () => {
   const files = createFiles('src-ts')
-  expect(files.keys().length > 0).toEqual(true)
-  const ei = files.get('wasm/index.d.ts')!.buffer
+  expect(files.length > 0).toEqual(true)
+  const ei = files.find((i) => i.path === 'wasm/index.d.ts')!.buffer
   const txt = Buffer.from(ei).toString()
   expect(txt.includes('decode')).toEqual(true)
 })
