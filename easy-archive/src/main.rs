@@ -13,13 +13,13 @@ fn main() {
         let files = fmt.decode(buffer).expect("failed to decode");
         let mut info_list = vec![];
         let mut total_size = 0;
-        let file_count = files.keys().len();
-        for (path, file) in &files {
+        let file_count = files.len();
+        for file in &files {
             let size = file.buffer.len();
             info_list.push((
                 mode_to_string(file.mode.unwrap_or(0), file.is_dir),
                 human_size(size),
-                path,
+                &file.path,
             ));
             total_size += size;
         }
@@ -34,10 +34,10 @@ fn main() {
 
         if let Some(output) = std::env::args().nth(2) {
             println!("decompress to {}", output);
-            let path_max_len = files.keys().iter().fold(0, |pre, cur| pre.max(cur.len()));
-            for (path, file) in &files {
+            let path_max_len = files.iter().fold(0, |pre, cur| pre.max(cur.path.len()));
+            for file in &files {
                 let output_path = std::path::Path::new(&output).clean();
-                let output_path = output_path.join(path).clean();
+                let output_path = output_path.join(&file.path).clean();
                 let dir = output_path.parent().expect("failed to get parent dir");
                 if !dir.exists() {
                     std::fs::create_dir_all(dir).expect("failed to create dir");

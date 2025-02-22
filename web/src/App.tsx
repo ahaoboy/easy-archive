@@ -86,11 +86,8 @@ async function filesToData(file: File): Promise<FileType[] | undefined> {
     return
   }
   const v: FileType[] = []
-  const keys = decodeFiles.keys()
-  for (const path of keys) {
-    const item = decodeFiles.get(path)!
-    if (!item) continue
-    const { mode, isDir, buffer } = item
+  for (const item of decodeFiles) {
+    const { path, mode, isDir, buffer } = item
     const size = humanSize(buffer.length)
     v.push({ path, isDir, mode, buffer, size })
   }

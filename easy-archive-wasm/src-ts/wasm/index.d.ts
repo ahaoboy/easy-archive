@@ -2,7 +2,7 @@
 /* eslint-disable */
 export function guess(name: string): Fmt | undefined;
 export function extensions(fmt: Fmt): string[];
-export function decode(fmt: Fmt, buffer: Uint8Array): Files | undefined;
+export function decode(fmt: Fmt, buffer: Uint8Array): File[] | undefined;
 export enum Fmt {
   Tar = 0,
   TarGz = 1,
@@ -19,12 +19,5 @@ export class File {
   isDir: boolean;
   readonly buffer: Uint8Array;
   readonly path: string;
-}
-export class Files {
-  free(): void;
-  constructor();
-  get(path: string): File | undefined;
-  insert(path: string, file: File): File | undefined;
-  keys(): string[];
 }
 

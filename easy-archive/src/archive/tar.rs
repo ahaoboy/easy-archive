@@ -1,6 +1,6 @@
 use crate::{
     tool::clean,
-    ty::{Decode, File, Files},
+    ty::{Decode, File},
 };
 use std::io::{Cursor, Read};
 use tar::Archive;
@@ -8,8 +8,8 @@ use tar::Archive;
 pub struct Tar;
 
 impl Decode for Tar {
-    fn decode(buffer: Vec<u8>) -> Option<Files> {
-        let mut files = Files::new();
+    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
+        let mut files = Vec::new();
         let cur = Cursor::new(buffer);
         let mut a = Archive::new(cur);
         for file in a.entries().unwrap() {
@@ -24,7 +24,7 @@ impl Decode for Tar {
             let mode = file.header().mode().ok();
             let is_dir = path.ends_with("/");
             let path = clean(&path);
-            files.insert(path.clone(), File::new(path, buffer, mode, is_dir));
+            files.push(File::new(path, buffer, mode, is_dir));
         }
         Some(files)
     }
@@ -33,7 +33,7 @@ use flate2::read::GzDecoder;
 
 pub struct TarGz;
 impl Decode for TarGz {
-    fn decode(buffer: Vec<u8>) -> Option<Files> {
+    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
         let mut decoder = GzDecoder::new(&buffer[..]);
         let mut decompressed = Vec::new();
         decoder.read_to_end(&mut decompressed).ok()?;
@@ -42,7 +42,7 @@ impl Decode for TarGz {
 }
 
 #[cfg(any(test, feature = "xz2"))]
-fn decode_xz2(buffer: &[u8]) -> Option<Files> {
+fn decode_xz2(buffer: &[u8]) -> Option<Vec<File>> {
     use xz2::bufread::XzDecoder;
     let mut dec = XzDecoder::new(buffer);
     let mut decompressed = vec![];
@@ -50,7 +50,7 @@ fn decode_xz2(buffer: &[u8]) -> Option<Files> {
     Tar::decode(decompressed)
 }
 
-fn decode_lzma(buffer: &[u8]) -> Option<Files> {
+fn decode_lzma(buffer: &[u8]) -> Option<Vec<File>> {
     let mut cur = Cursor::new(buffer);
     let mut decomp: Vec<u8> = Vec::new();
     lzma_rs::xz_decompress(&mut cur, &mut decomp).ok()?;
@@ -59,7 +59,7 @@ fn decode_lzma(buffer: &[u8]) -> Option<Files> {
 
 pub struct TarXz;
 impl Decode for TarXz {
-    fn decode(buffer: Vec<u8>) -> Option<Files> {
+    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
         let files = decode_lzma(&buffer);
         #[cfg(feature = "xz2")]
         if files.is_none() {
@@ -71,7 +71,7 @@ impl Decode for TarXz {
 
 pub struct TarBz;
 impl Decode for TarBz {
-    fn decode(buffer: Vec<u8>) -> Option<Files> {
+    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
         use bzip2_rs::DecoderReader;
         let cur = Cursor::new(buffer);
         let reader = DecoderReader::new(cur);
@@ -83,7 +83,7 @@ use ruzstd::decoding::StreamingDecoder;
 
 pub struct TarZstd;
 impl Decode for TarZstd {
-    fn decode(buffer: Vec<u8>) -> Option<Files> {
+    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
         let cur = Cursor::new(buffer);
         let mut decoder = StreamingDecoder::new(cur).unwrap();
         let mut result = Vec::new();

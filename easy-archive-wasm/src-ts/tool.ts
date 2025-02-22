@@ -8,7 +8,7 @@ import {
   statSync,
   writeFileSync,
 } from 'fs'
-import { decode, File, Files, guess } from './wasm'
+import { decode, guess } from './wasm'
 import { dirname, join, relative } from 'path'
 import { tmpdir } from 'os'
 import { execSync } from 'child_process'
@@ -136,13 +136,8 @@ export function extractToByWasm(
   if (!files) {
     return undefined
   }
-  const keys = files.keys()
   const jsFiles = new JsFiles()
-  for (const i of keys) {
-    const file = files.get(i)
-    if (!file) {
-      continue
-    }
+  for (const file of files) {
     const { path, mode, isDir, buffer } = file
     jsFiles.insert(path, new JsFile(path, buffer, mode, isDir))
     const outputPath = join(outputDir, path)

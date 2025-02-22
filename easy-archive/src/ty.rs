@@ -2,7 +2,6 @@ use crate::archive::{
     tar::{Tar, TarBz, TarGz, TarXz, TarZstd},
     zip::Zip,
 };
-use indexmap::IndexMap;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -15,50 +14,8 @@ pub enum Fmt {
     Zip,
 }
 
-#[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
-#[derive(Debug, Clone, Default)]
-pub struct Files(IndexMap<String, File>);
-
-#[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
-impl Files {
-    #[cfg_attr(feature = "wasm", wasm_bindgen(constructor))]
-    pub fn new() -> Self {
-        Files(IndexMap::new())
-    }
-
-    pub fn get(&self, path: &str) -> Option<File> {
-        self.0.get(path).cloned()
-    }
-
-    pub fn insert(&mut self, path: String, file: File) -> Option<File> {
-        self.0.insert(path, file)
-    }
-
-    pub fn keys(&self) -> Vec<String> {
-        self.0.keys().cloned().collect()
-    }
-}
-
-impl IntoIterator for Files {
-    type Item = (String, File);
-    type IntoIter = <IndexMap<String, File> as IntoIterator>::IntoIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}
-
-impl<'a> IntoIterator for &'a Files {
-    type Item = (&'a String, &'a File);
-    type IntoIter = indexmap::map::Iter<'a, String, File>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.iter()
-    }
-}
-
 impl Fmt {
-    pub fn decode(&self, buffer: Vec<u8>) -> Option<Files> {
+    pub fn decode(&self, buffer: Vec<u8>) -> Option<Vec<File>> {
         match self {
             Fmt::Zip => Zip::decode(buffer),
             Fmt::Tar => Tar::decode(buffer),
@@ -139,19 +96,14 @@ impl File {
     pub fn get_path(&self) -> String {
         self.path.clone()
     }
-
-    // #[wasm_bindgen(getter = mode)]
-    // pub fn get_mode(&self) -> Option<u32> {
-    //     self.mode
-    // }
 }
 
 pub trait Encode {
-    fn encode(files: Files) -> Option<Vec<u8>>;
+    fn encode(files: Vec<File>) -> Option<Vec<u8>>;
 }
 
 pub trait Decode {
-    fn decode(buffer: Vec<u8>) -> Option<Files>;
+    fn decode(buffer: Vec<u8>) -> Option<Vec<File>>;
 }
 
 pub trait Archive: Encode + Decode {}

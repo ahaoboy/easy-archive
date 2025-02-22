@@ -13,7 +13,10 @@ mod test {
             let buffer = std::fs::read(&path).unwrap();
             let fmt = Fmt::guess(&path.to_string_lossy()).unwrap();
             let files = fmt.decode(buffer).unwrap();
-            let dist = files.get("mujs-build-0.0.11/dist-manifest.json").unwrap();
+            let dist = files
+                .iter()
+                .find(|i| i.path == "mujs-build-0.0.11/dist-manifest.json")
+                .unwrap();
             assert!(!dist.buffer.is_empty());
         }
     }
