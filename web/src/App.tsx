@@ -33,7 +33,7 @@ const SupportFormat = [
   Fmt.TarXz,
   Fmt.TarZstd,
   Fmt.Zip,
-].map((i) => extensions(i)).flat().join(', ')
+].map((i) => extensions(i)).flat()
 
 const columns: TableProps<FileType>['columns'] = [
   {
@@ -86,12 +86,11 @@ export interface FileType {
   isDir: boolean
 }
 
-async function filesToData(file: File): Promise<FileType[] | undefined> {
+async function filesToData(
+  fmt: Fmt,
+  file: File,
+): Promise<FileType[] | undefined> {
   const fileBuffer = new Uint8Array(await file.arrayBuffer())
-  const fmt = guess(file.name)
-  if (!fmt) {
-    return
-  }
   const decodeFiles = await decode(fmt, fileBuffer)
   if (!decodeFiles) {
     return
@@ -122,7 +121,11 @@ const App: React.FC = () => {
           if (!file) {
             return
           }
-          const v = await filesToData(file)
+          const fmt = guess(file.name)
+          if (!fmt) {
+            return
+          }
+          const v = await filesToData(fmt, file)
           if (v?.length) {
             setData(v)
           }
@@ -136,7 +139,7 @@ const App: React.FC = () => {
           Click or drag archive file to this area to upload
         </p>
         <p className='ant-upload-hint'>
-          Support format: {SupportFormat}
+          Support format: {SupportFormat.join(', ')}
         </p>
       </Dragger>
 
