@@ -34,14 +34,18 @@ const columns: TableProps<FileType>['columns'] = [
     title: 'size',
     dataIndex: 'size',
     key: 'path',
-    render: (_, { isDir, size, path }) => (
-      <div key={path}>{!isDir ? size : ''}</div>
-    ),
+    render: (_, { isDir, size }) => !isDir ? size : '',
   },
   {
     title: 'mode',
     key: 'path',
     dataIndex: 'mode',
+    render: (_, { isDir, mode }) =>
+      mode !== undefined
+        ? `(0o${mode.toString(8).padStart(3, '0')}) ${
+          modeToString(mode, isDir)
+        }`
+        : '',
   },
   {
     title: 'download',
@@ -65,7 +69,7 @@ const columns: TableProps<FileType>['columns'] = [
 
 export interface FileType {
   path: string
-  mode: string | undefined
+  mode: number | undefined
   buffer: Uint8Array
   size: string
   isDir: boolean
@@ -88,7 +92,7 @@ async function filesToData(file: File): Promise<FileType[] | undefined> {
     if (!item) continue
     const { mode, isDir, buffer } = item
     const size = humanSize(buffer.length)
-    v.push({ path, isDir, mode: modeToString(mode || 0, isDir), buffer, size })
+    v.push({ path, isDir, mode, buffer, size })
   }
   return v
 }
@@ -129,15 +133,11 @@ const App: React.FC = () => {
         </p>
       </Dragger>
 
-      {data.length > 0 &&
-        (
-          <Table<FileType>
-            className='table'
-            columns={columns}
-            dataSource={data}
-          />
-        )}
-
+      <Table<FileType>
+        className='table'
+        columns={columns}
+        dataSource={data}
+      />
       <Spin spinning={spinning} fullscreen />
     </div>
   )
