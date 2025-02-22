@@ -42,6 +42,12 @@ const columns: TableProps<FileType>['columns'] = [
     key: 'path',
   },
   {
+    title: 'isDir',
+    dataIndex: 'isDir',
+    key: 'isDir',
+    render: (_, { isDir }) => isDir.toString(),
+  },
+  {
     title: 'size',
     dataIndex: 'size',
     key: 'path',
