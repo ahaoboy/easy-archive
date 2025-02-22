@@ -7,7 +7,7 @@ import {
   humanSize,
   modeToString,
 } from '@easy-install/easy-archive'
-import { Button, Spin, Table, type TableProps } from 'antd'
+import { Button, Flex, Spin, Table, type TableProps } from 'antd'
 import { DownloadOutlined, InboxOutlined } from '@ant-design/icons'
 import { Upload } from 'antd'
 
@@ -114,7 +114,13 @@ const App: React.FC = () => {
   const [data, setData] = useState<FileType[]>([])
   const [spinning, setSpinning] = React.useState(false)
   return (
-    <div className='main'>
+    <Flex
+      className='main'
+      vertical
+      gap='middle'
+      justify='space-around'
+      align='center'
+    >
       <Dragger
         name='file'
         action='*'
@@ -155,7 +161,7 @@ const App: React.FC = () => {
         dataSource={data}
       />
       <Spin spinning={spinning} fullscreen />
-    </div>
+    </Flex>
   )
 }
 
