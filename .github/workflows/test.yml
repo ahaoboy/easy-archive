@@ -65,8 +65,8 @@ jobs:
           curl -L -o zig.tar.xz https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz
           cargo run -- ./zig.tar.xz ./zig
 
-          curl -L -o bun-profile.tar.xz https://github.com/oven-sh/bun/releases/download/bun-v1.2.3/bun-linux-aarch64-musl-profile.zip
-          cargo run -- ./bun-profile.tar.xz ./bun-profile
+          curl -L -o bun-profile.zip https://github.com/oven-sh/bun/releases/download/bun-v1.2.3/bun-linux-aarch64-musl-profile.zip
+          cargo run -- ./bun-profile.zip ./bun-profile
   js-test:
     strategy:
       matrix:
@@ -127,5 +127,5 @@ jobs:
           curl -L -o zig.tar.xz https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz
           node ./dist/cli.js ./zig.tar.xz ./zig
 
-          curl -L -o bun-profile.tar.xz https://github.com/oven-sh/bun/releases/download/bun-v1.2.3/bun-linux-aarch64-musl-profile.zip
-          node ./dist/cli.js ./bun-profile.tar.xz ./bun-profile
+          curl -L -o bun-profile.zip https://github.com/oven-sh/bun/releases/download/bun-v1.2.3/bun-linux-aarch64-musl-profile.zip
+          node ./dist/cli.js ./bun-profile.zip ./bun-profile
