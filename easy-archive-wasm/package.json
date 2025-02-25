@@ -40,8 +40,8 @@
   "scripts": {
     "test": "vitest",
     "test:run": "vitest --run",
-    "copy:wasm": "cp ./src-ts/wasm ./dist -r",
-    "build:lib": "tsc",
+    "copy:wasm": "cp -r ./src-ts/wasm ./dist",
+    "build:lib": "tsc && pnpm run copy:wasm",
     "build:cli": "esbuild ./src-ts/cli.ts --bundle --outdir=./dist --platform=node",
     "build": "pnpm run build:lib && pnpm run build:cli",
     "build:full": "pnpm run build:wasm && pnpm run build:inline && pnpm run build:lib && pnpm run build:cli && pnpm run copy:wasm",
