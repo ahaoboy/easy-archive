@@ -1,7 +1,4 @@
-use easy_archive::{
-    tool::{human_size, mode_to_string},
-    ty::Fmt,
-};
+use easy_archive::{Fmt, human_size, mode_to_string};
 use path_clean::PathClean;
 
 const MAX_FILE_COUNT: usize = 32;

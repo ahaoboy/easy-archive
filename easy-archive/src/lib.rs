@@ -1,6 +1,10 @@
-pub mod archive;
-pub mod tool;
-pub mod ty;
+mod archive;
+mod tool;
+mod ty;
+
+pub use archive::*;
+pub use tool::*;
+pub use ty::*;
 
 #[cfg(test)]
 mod test {

@@ -1,10 +1,13 @@
+pub use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
+
 use crate::archive::{
     tar::{Tar, TarBz, TarGz, TarXz, TarZstd},
     zip::Zip,
 };
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(EnumIter, Debug, Clone, Copy, PartialEq)]
 pub enum Fmt {
     Tar,
     TarGz,

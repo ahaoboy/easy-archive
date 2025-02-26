@@ -16,6 +16,8 @@ wasm = ["wasm-bindgen"]
 cli = ["rc-zip", "rc-zip-sync", "xz2"]
 
 [dependencies]
+strum = { workspace = true }
+strum_macros = { workspace = true }
 tar = { workspace = true }
 zip = { workspace = true }
 flate2 = { workspace = true }

@@ -1,4 +1,4 @@
-use easy_archive::ty::{File, Fmt};
+use easy_archive::{File, Fmt};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[wasm_bindgen]
