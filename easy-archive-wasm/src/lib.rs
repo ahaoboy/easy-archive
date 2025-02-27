@@ -8,7 +8,7 @@ pub fn guess(name: String) -> Option<Fmt> {
 
 #[wasm_bindgen]
 pub fn extensions(fmt: Fmt) -> Vec<String> {
-    fmt.extensions()
+    fmt.extensions().iter().map(|i| i.to_string()).collect()
 }
 
 #[wasm_bindgen]

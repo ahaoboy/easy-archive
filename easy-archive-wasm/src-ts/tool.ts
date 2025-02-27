@@ -27,7 +27,7 @@ export function randomId() {
   return Math.random().toString(36).slice(2)
 }
 
-const free = () => {}
+const free = () => { }
 
 export function createFiles(dir: string): File[] {
   const files: File[] = []
@@ -132,7 +132,7 @@ export function extractToByWasm(
       mkdirSync(outputDir, { recursive: true })
     }
   }
-  if (!fmt) {
+  if (fmt === undefined) {
     console.log('extractTo not support this file type')
     return undefined
   }

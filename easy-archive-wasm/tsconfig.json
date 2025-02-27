@@ -21,6 +21,5 @@
     "declarationMap": false,
     "sourceMap": false
   },
-  "include": ["src-ts"],
-  "exclude": ["src-ts/cli.ts"]
+  "include": ["src-ts"]
 }

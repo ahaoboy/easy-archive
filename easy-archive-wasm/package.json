@@ -1,37 +1,32 @@
 {
   "name": "@easy-install/easy-archive",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "easy-archive",
-  "main": "dist/index.js",
+  "main": "esm/index.js",
   "bin": {
-    "easy-archive": "./dist/cli.js"
+    "easy-archive": "./cjs/cli.js"
   },
-  "types": "./dist/index.d.ts",
+  "types": "./esm/index.d.ts",
   "author": "ahaoboy",
   "license": "MIT",
   "homepage": "https://github.com/ahaoboy/easy-archive",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./esm/index.d.ts",
+      "import": "./esm/index.js",
+      "require": "./cjs/index.js",
+      "default": "./cjs/index.js"
     },
     "./tool": {
-      "types": "./dist/tool.d.ts",
-      "import": "./dist/tool.js"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      ".": [
-        "./dist/index.d.ts"
-      ],
-      "./tool": [
-        "./dist/tool.d.ts"
-      ]
+      "types": "./esm/tool.d.ts",
+      "import": "./esm/tool.js",
+      "require": "./cjs/tool.js",
+      "default": "./cjs/tool.js"
     }
   },
   "files": [
-    "dist"
+    "cjs",
+    "esm"
   ],
   "repository": {
     "type": "git",
@@ -40,12 +35,12 @@
   "scripts": {
     "test": "vitest",
     "test:run": "vitest --run",
-    "copy:wasm": "cp -r ./src-ts/wasm ./dist",
-    "build:lib": "tsc && pnpm run copy:wasm",
-    "build:cli": "esbuild ./src-ts/cli.ts --bundle --outdir=./dist --platform=node",
-    "build": "pnpm run build:lib && pnpm run build:cli",
-    "build:full": "pnpm run build:wasm && pnpm run build:inline && pnpm run build:lib && pnpm run build:cli && pnpm run copy:wasm",
-    "build:wasm": "wasm-pack build --target=web --out-dir ./web --release",
+    "copy:wasm": "cp -r ./src-ts/wasm/index.d.ts ./esm/index.d.ts",
+    "build:cjs": "tsc --outDir cjs --declaration false --module commonjs",
+    "build:esm": "tsc --outDir esm --module esnext && npm run copy:wasm",
+    "build": "npm run build:cjs && npm run build:esm && pnpm run copy:wasm",
+    "build:full": "pnpm run build:wasm && pnpm run build:inline && pnpm run build",
+    "build:wasm": "wasm-pack build --target=web --out-dir ./web  ",
     "build:inline": " wasm-pack-inline ./web -d ./src-ts/wasm --name index"
   },
   "keywords": [
