@@ -41,7 +41,7 @@ impl Decode for TarGz {
     }
 }
 
-#[cfg(any(test, feature = "xz2"))]
+#[cfg(feature = "xz2")]
 fn decode_xz2(buffer: &[u8]) -> Option<Vec<File>> {
     use xz2::bufread::XzDecoder;
     let mut dec = XzDecoder::new(buffer);
@@ -50,7 +50,8 @@ fn decode_xz2(buffer: &[u8]) -> Option<Vec<File>> {
     Tar::decode(decompressed)
 }
 
-fn decode_lzma(buffer: &[u8]) -> Option<Vec<File>> {
+#[cfg(feature = "lzma-rs")]
+fn decode_lzma_rs(buffer: &[u8]) -> Option<Vec<File>> {
     let mut cur = Cursor::new(buffer);
     let mut decomp: Vec<u8> = Vec::new();
     lzma_rs::xz_decompress(&mut cur, &mut decomp).ok()?;
@@ -60,12 +61,11 @@ fn decode_lzma(buffer: &[u8]) -> Option<Vec<File>> {
 pub struct TarXz;
 impl Decode for TarXz {
     fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
-        let files = decode_lzma(&buffer);
         #[cfg(feature = "xz2")]
-        if files.is_none() {
-            return decode_xz2(&buffer);
-        }
-        files
+        return decode_xz2(&buffer);
+        #[allow(unreachable_code)]
+        #[cfg(feature = "lzma-rs")]
+        return decode_lzma_rs(&buffer);
     }
 }
 

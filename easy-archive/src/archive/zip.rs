@@ -3,16 +3,16 @@ use crate::{
     ty::{Decode, File},
 };
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
-use zip::ZipArchive;
 
 pub struct Zip;
 
+#[cfg(feature = "zip")]
 fn decode_zip(buffer: &[u8]) -> Option<Vec<File>> {
     let mut c = Cursor::new(Vec::new());
     c.write_all(buffer).ok()?;
     c.seek(SeekFrom::Start(0)).ok()?;
     let mut files = Vec::new();
-    let mut archive = ZipArchive::new(c).ok()?;
+    let mut archive = zip::ZipArchive::new(c).ok()?;
     for i in 0..archive.len() {
         let mut file = archive.by_index(i).ok()?;
         if file.is_file() {
@@ -27,7 +27,7 @@ fn decode_zip(buffer: &[u8]) -> Option<Vec<File>> {
     Some(files)
 }
 
-#[cfg(any(test, feature = "rc-zip"))]
+#[cfg(feature = "rc-zip")]
 fn decode_rc_zip(buffer: &[u8]) -> Option<Vec<File>> {
     use rc_zip_sync::ReadZip;
     let reader = buffer.read_zip().ok()?;
@@ -50,12 +50,9 @@ fn decode_rc_zip(buffer: &[u8]) -> Option<Vec<File>> {
 
 impl Decode for Zip {
     fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
-        let files = decode_zip(&buffer);
-
+        #[cfg(feature = "zip")]
+        return decode_zip(&buffer);
         #[cfg(feature = "rc-zip")]
-        if files.is_none() {
-            return decode_rc_zip(&buffer);
-        }
-        files
+        return decode_rc_zip(&buffer);
     }
 }
