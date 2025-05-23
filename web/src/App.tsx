@@ -1,14 +1,20 @@
 import React, { useState } from 'react'
 import {
   decode,
+  encode,
   extensions,
+  File as WasmFile,
   Fmt,
   guess,
   humanSize,
   modeToString,
 } from '@easy-install/easy-archive'
 import { Button, Flex, Spin, Table, type TableProps } from 'antd'
-import { DownloadOutlined, InboxOutlined } from '@ant-design/icons'
+import {
+  DeleteOutlined,
+  DownloadOutlined,
+  InboxOutlined,
+} from '@ant-design/icons'
 import { Upload } from 'antd'
 
 const { Dragger } = Upload
@@ -35,61 +41,14 @@ const SupportFormat = [
   Fmt.Zip,
 ].map((i) => extensions(i)).flat()
 
-const columns: TableProps<FileType>['columns'] = [
-  {
-    title: 'path',
-    dataIndex: 'path',
-    key: 'path',
-  },
-  {
-    title: 'isDir',
-    dataIndex: 'isDir',
-    key: 'isDir',
-    render: (_, { isDir }) => isDir.toString(),
-  },
-  {
-    title: 'size',
-    dataIndex: 'size',
-    key: 'path',
-    render: (_, { isDir, size }) => !isDir ? size : '',
-  },
-  {
-    title: 'mode',
-    key: 'path',
-    dataIndex: 'mode',
-    render: (_, { isDir, mode }) =>
-      mode !== undefined
-        ? `(0o${mode.toString(8).padStart(3, '0')}) ${
-          modeToString(mode, isDir)
-        }`
-        : '',
-  },
-  {
-    title: 'download',
-    key: 'path',
-    dataIndex: 'download',
-    render: (_, { path, buffer, isDir }) => (
-      !isDir && (
-        <Button
-          key={path}
-          icon={<DownloadOutlined />}
-          onClick={() => {
-            console.log(buffer, path)
-            downloadBinaryFile(path, buffer)
-          }}
-        >
-        </Button>
-      )
-    ),
-  },
-]
-
 export interface FileType {
   path: string
   mode: number | undefined
   buffer: Uint8Array
   size: string
   isDir: boolean
+  key: string
+  file: WasmFile
 }
 
 async function filesToData(
@@ -105,7 +64,7 @@ async function filesToData(
   for (const item of decodeFiles) {
     const { path, mode, isDir, buffer } = item
     const size = humanSize(buffer.length)
-    v.push({ path, isDir, mode, buffer, size })
+    v.push({ key: path, path, isDir, mode, buffer, size, file: item })
   }
   return v
 }
@@ -113,6 +72,84 @@ async function filesToData(
 const App: React.FC = () => {
   const [data, setData] = useState<FileType[]>([])
   const [spinning, setSpinning] = React.useState(false)
+  const [filename, setFilename] = useState('')
+
+  const columns: TableProps<FileType>['columns'] = [
+    {
+      title: 'path',
+      dataIndex: 'path',
+      key: 'path',
+    },
+    {
+      title: 'isDir',
+      dataIndex: 'isDir',
+      key: 'isDir',
+      render: (_, { isDir }) => isDir.toString(),
+    },
+    {
+      title: 'size',
+      dataIndex: 'size',
+      key: 'path',
+      render: (_, { isDir, size }) => !isDir ? size : '',
+    },
+    {
+      title: 'mode',
+      key: 'path',
+      dataIndex: 'mode',
+      render: (_, { isDir, mode }) =>
+        mode !== undefined
+          ? `(0o${mode.toString(8).padStart(3, '0')}) ${modeToString(mode, isDir)
+          }`
+          : '',
+    },
+    {
+      title: 'download',
+      key: 'path',
+      dataIndex: 'download',
+      render: (_, { path, buffer, isDir }) => (
+        !isDir && (
+          <Button
+            key={path}
+            icon={<DownloadOutlined />}
+            onClick={() => {
+              // console.log('download', buffer, path)
+              downloadBinaryFile(path, buffer)
+            }}
+          >
+          </Button>
+        )
+      ),
+    },
+    {
+      title: 'delete',
+      key: 'path',
+      dataIndex: 'delete',
+      render: (_, { path, buffer, isDir }) => (
+        !isDir && (
+          <Button
+            key={path}
+            icon={<DeleteOutlined />}
+            onClick={() => {
+              console.log('delete', buffer, path)
+              setData(data.filter((i) => i.path !== path))
+            }}
+          >
+          </Button>
+        )
+      ),
+    },
+  ]
+
+  const downloadZip = () => {
+    console.log('downloadZip', data)
+    let zip = encode(
+      Fmt.Zip,
+      data.map((i) => new WasmFile(i.path, i.buffer, i.mode, i.isDir)),
+    )
+    if (zip) {
+      downloadBinaryFile(filename, zip)
+    }
+  }
   return (
     <Flex
       className='main'
@@ -142,6 +179,7 @@ const App: React.FC = () => {
             setData(v)
           }
           setSpinning(false)
+          setFilename(file.name)
         }}
       >
         <p className='ant-upload-drag-icon'>
@@ -161,6 +199,14 @@ const App: React.FC = () => {
         dataSource={data}
       />
       <Spin spinning={spinning} fullscreen />
+      <Button
+        type='primary'
+        icon={<DownloadOutlined />}
+        size={'large'}
+        onClick={downloadZip}
+      >
+        Download {filename}
+      </Button>
     </Flex>
   )
 }

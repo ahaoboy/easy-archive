@@ -12,3 +12,6 @@ wasm-bindgen = { workspace = true }
 easy-archive = { path = "../easy-archive", features = [
   "wasm",
 ], default-features = false }
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false

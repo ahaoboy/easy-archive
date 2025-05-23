@@ -1,7 +1,5 @@
-use crate::{
-    tool::clean,
-    ty::{Decode, File},
-};
+use crate::{Decode, Encode, File, tool::clean};
+use flate2::read::GzDecoder;
 use std::io::{Cursor, Read};
 use tar::Archive;
 
@@ -29,7 +27,6 @@ impl Decode for Tar {
         Some(files)
     }
 }
-use flate2::read::GzDecoder;
 
 pub struct TarGz;
 impl Decode for TarGz {
@@ -91,3 +88,9 @@ impl Decode for TarZstd {
         Tar::decode(result)
     }
 }
+
+impl Encode for Tar {}
+impl Encode for TarGz {}
+impl Encode for TarXz {}
+impl Encode for TarBz {}
+impl Encode for TarZstd {}
