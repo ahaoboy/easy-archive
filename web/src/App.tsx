@@ -98,7 +98,8 @@ const App: React.FC = () => {
       dataIndex: 'mode',
       render: (_, { isDir, mode }) =>
         mode !== undefined
-          ? `(0o${mode.toString(8).padStart(3, '0')}) ${modeToString(mode, isDir)
+          ? `(0o${mode.toString(8).padStart(3, '0')}) ${
+            modeToString(mode, isDir)
           }`
           : '',
     },
