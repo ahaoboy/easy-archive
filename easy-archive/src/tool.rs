@@ -11,11 +11,11 @@ pub fn mode_to_string(mode: u32, is_dir: bool) -> String {
     let group = rwx_mapping[((mode >> 3) & 0b111) as usize];
     let others = rwx_mapping[(mode & 0b111) as usize];
     let d = if is_dir { "d" } else { "-" };
-    format!("{}{}{}{}", d, owner, group, others)
+    format!("{d}{owner}{group}{others}")
 }
 
 fn round(value: f64) -> String {
-    let mut s = format!("{:.1}", value);
+    let mut s = format!("{value:.1}");
     if s.contains('.') {
         while s.ends_with('0') {
             s.pop();

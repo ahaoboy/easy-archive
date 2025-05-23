@@ -35,7 +35,7 @@
   "scripts": {
     "test": "vitest",
     "test:run": "vitest --run",
-    "copy:wasm": "cp -r ./src-ts/wasm/index.d.ts ./esm/index.d.ts",
+    "copy:wasm": "cp -r ./src-ts/wasm/index.d.ts ./esm/wasm/index.d.ts",
     "build:cjs": "tsc --outDir cjs --declaration false --module commonjs",
     "build:esm": "tsc --outDir esm --module esnext && npm run copy:wasm",
     "build": "npm run build:cjs && npm run build:esm && pnpm run copy:wasm",

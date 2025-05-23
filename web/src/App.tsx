@@ -124,13 +124,13 @@ const App: React.FC = () => {
       title: 'delete',
       key: 'path',
       dataIndex: 'delete',
-      render: (_, { path, buffer, isDir }) => (
+      render: (_, { path, isDir }) => (
         !isDir && (
           <Button
             key={path}
             icon={<DeleteOutlined />}
             onClick={() => {
-              console.log('delete', buffer, path)
+              // console.log('delete', buffer, path)
               setData(data.filter((i) => i.path !== path))
             }}
           >
@@ -141,7 +141,7 @@ const App: React.FC = () => {
   ]
 
   const downloadZip = () => {
-    console.log('downloadZip', data)
+    // console.log('downloadZip', data)
     let zip = encode(
       Fmt.Zip,
       data.map((i) => new WasmFile(i.path, i.buffer, i.mode, i.isDir)),

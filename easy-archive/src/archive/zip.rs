@@ -68,10 +68,8 @@ impl Encode for Zip {
         for i in &files {
             if i.is_dir {
                 dir_set.insert(i.path.clone());
-            } else {
-                if let Some(p) = std::path::Path::new(&i.path).parent() {
-                    dir_set.insert(p.to_string_lossy().to_string());
-                }
+            } else if let Some(p) = std::path::Path::new(&i.path).parent() {
+                dir_set.insert(p.to_string_lossy().to_string());
             }
         }
 
