@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import { ConfigProvider, theme } from 'antd'
 const { defaultAlgorithm, darkAlgorithm } = theme
+import '@ant-design/v5-patch-for-react-19'
 
 const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 createRoot(document.getElementById('root')!).render(

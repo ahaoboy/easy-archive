@@ -17,7 +17,7 @@ strum = "0.27"
 strum_macros = "0.27"
 wasm-bindgen = { version = "0.2" }
 tar = { package = "binstall-tar", version = "0.4" }
-zip = { version = "2", default-features = false, features = ["deflate"] }
+zip = { version = "4", default-features = false, features = ["deflate"] }
 flate2 = { version = "1", default-features = false, features = ["zlib-rs"] }
 lzma-rs = "0.3"
 ruzstd = "0.8"

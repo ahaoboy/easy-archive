@@ -1,6 +1,6 @@
 {
   "name": "@easy-install/easy-archive",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "easy-archive",
   "main": "esm/index.js",
   "bin": {
@@ -35,7 +35,7 @@
   "scripts": {
     "test": "vitest",
     "test:run": "vitest --run",
-    "copy:wasm": "cp -r ./src-ts/wasm/index.d.ts ./esm/index.d.ts",
+    "copy:wasm": "cp -r ./src-ts/wasm/index.d.ts ./esm/wasm/index.d.ts",
     "build:cjs": "tsc --outDir cjs --declaration false --module commonjs",
     "build:esm": "tsc --outDir esm --module esnext && npm run copy:wasm",
     "build": "npm run build:cjs && npm run build:esm && pnpm run copy:wasm",
@@ -45,8 +45,5 @@
   },
   "keywords": [
     "easy-archive"
-  ],
-  "dependencies": {
-    "@ant-design/icons": "^5.6.1"
-  }
+  ]
 }

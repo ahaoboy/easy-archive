@@ -1,7 +1,4 @@
-use crate::{
-    tool::clean,
-    ty::{Decode, File},
-};
+use crate::{Decode, Encode, File, tool::clean};
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
 pub struct Zip;
@@ -54,5 +51,42 @@ impl Decode for Zip {
         return decode_zip(&buffer);
         #[cfg(feature = "rc-zip")]
         return decode_rc_zip(&buffer);
+    }
+}
+
+impl Encode for Zip {
+    fn encode(files: Vec<File>) -> Option<Vec<u8>> {
+        use std::collections::HashSet;
+        use std::io::prelude::*;
+        use zip::write::SimpleFileOptions;
+
+        let mut v = vec![];
+        let mut c = std::io::Cursor::new(&mut v);
+        let mut zip = zip::ZipWriter::new(&mut c);
+        let mut dir_set = HashSet::new();
+
+        for i in &files {
+            if i.is_dir {
+                dir_set.insert(i.path.clone());
+            } else if let Some(p) = std::path::Path::new(&i.path).parent() {
+                dir_set.insert(p.to_string_lossy().to_string());
+            }
+        }
+
+        for i in &dir_set {
+            zip.add_directory(i.as_str(), SimpleFileOptions::default())
+                .ok()?;
+        }
+
+        for i in &files {
+            let mode = i.mode.unwrap_or(0o755);
+            let options = SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Stored)
+                .unix_permissions(mode);
+            zip.start_file(i.path.as_str(), options).ok()?;
+            zip.write_all(&i.buffer).ok()?;
+        }
+        zip.finish().ok()?;
+        Some(v)
     }
 }

@@ -28,6 +28,16 @@ impl Fmt {
             Fmt::TarZstd => TarZstd::decode(buffer),
         }
     }
+    pub fn encode(&self, files: Vec<File>) -> Option<Vec<u8>> {
+        match self {
+            Fmt::Zip => Zip::encode(files),
+            Fmt::Tar => Tar::encode(files),
+            Fmt::TarGz => TarGz::encode(files),
+            Fmt::TarXz => TarXz::encode(files),
+            Fmt::TarBz => TarBz::encode(files),
+            Fmt::TarZstd => TarZstd::encode(files),
+        }
+    }
 
     pub fn guess(name: &str) -> Option<Self> {
         for fmt in Fmt::iter() {
@@ -97,7 +107,9 @@ impl File {
 }
 
 pub trait Encode {
-    fn encode(files: Vec<File>) -> Option<Vec<u8>>;
+    fn encode(_files: Vec<File>) -> Option<Vec<u8>> {
+        todo!()
+    }
 }
 
 pub trait Decode {
