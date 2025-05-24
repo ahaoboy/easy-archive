@@ -45,8 +45,5 @@
   },
   "keywords": [
     "easy-archive"
-  ],
-  "dependencies": {
-    "@ant-design/icons": "^5.6.1"
-  }
+  ]
 }
