@@ -58,7 +58,7 @@ impl Encode for Zip {
     fn encode(files: Vec<File>) -> Option<Vec<u8>> {
         use std::collections::HashSet;
         use std::io::prelude::*;
-        use zip::write::SimpleFileOptions;
+        use zip::write::FullFileOptions;
 
         let mut v = vec![];
         let mut c = std::io::Cursor::new(&mut v);
@@ -74,7 +74,7 @@ impl Encode for Zip {
         }
 
         for i in &dir_set {
-            zip.add_directory(i.as_str(), SimpleFileOptions::default())
+            zip.add_directory(i.as_str(), FullFileOptions::default())
                 .ok()?;
         }
 
@@ -83,7 +83,7 @@ impl Encode for Zip {
                 continue;
             }
             let mode = i.mode.unwrap_or(0o755);
-            let options = SimpleFileOptions::default()
+            let options = FullFileOptions::default()
                 .compression_method(zip::CompressionMethod::Stored)
                 .unix_permissions(mode);
             zip.start_file(i.path.as_str(), options).ok()?;
