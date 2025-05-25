@@ -79,6 +79,9 @@ impl Encode for Zip {
         }
 
         for i in &files {
+          if i.is_dir{
+            continue;
+          }
             let mode = i.mode.unwrap_or(0o755);
             let options = SimpleFileOptions::default()
                 .compression_method(zip::CompressionMethod::Stored)
