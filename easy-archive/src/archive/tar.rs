@@ -1,6 +1,6 @@
 use crate::{Decode, Encode, File, tool::clean};
 use flate2::read::GzDecoder;
-use std::io::{Cursor, Read};
+use std::io::{BufReader, Cursor, Read};
 use tar::Archive;
 
 pub struct Tar;
@@ -71,7 +71,7 @@ impl Decode for TarBz {
     fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
         use bzip2_rs::DecoderReader;
         let cur = Cursor::new(buffer);
-        let reader = DecoderReader::new(cur);
+        let reader = BufReader::new(DecoderReader::new(cur));
         let v = reader.bytes().map(|i| i.unwrap()).collect();
         Tar::decode(v)
     }
