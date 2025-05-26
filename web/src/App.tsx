@@ -47,6 +47,7 @@ export interface FileType {
   buffer: Uint8Array
   size: string
   isDir: boolean
+  lastModified: bigint | undefined | null
   key: string
   file: WasmFile
 }
@@ -62,9 +63,18 @@ async function filesToData(
   }
   const v: FileType[] = []
   for (const item of decodeFiles) {
-    const { path, mode, isDir, buffer } = item
+    const { path, mode, isDir, lastModified, buffer } = item
     const size = humanSize(buffer.length)
-    v.push({ key: path, path, isDir, mode, buffer, size, file: item })
+    v.push({
+      key: path,
+      path,
+      isDir,
+      mode,
+      buffer,
+      size,
+      file: item,
+      lastModified,
+    })
   }
   return v
 }
@@ -101,6 +111,15 @@ const App: React.FC = () => {
           ? `(0o${mode.toString(8).padStart(3, '0')}) ${
             modeToString(mode, isDir)
           }`
+          : '',
+    },
+    {
+      title: 'lastModified',
+      key: 'path',
+      dataIndex: 'lastModified',
+      render: (_, { lastModified }) =>
+        lastModified
+          ? new Date(Number(lastModified) * 1000).toLocaleString()
           : '',
     },
     {
@@ -145,9 +164,18 @@ const App: React.FC = () => {
     // console.log('downloadZip', data)
     let zip = encode(
       Fmt.Zip,
-      data.map((i) => new WasmFile(i.path, i.buffer, i.mode, i.isDir)),
+      data.map((i) =>
+        new WasmFile(i.path, i.buffer, i.mode, i.isDir, i.lastModified)
+      ),
     )
     if (zip) {
+      let zipName = filename
+      for (const i of extensions(guess(filename)!)) {
+        if (zipName.endsWith(i)) {
+          zipName = zipName.replace(i, '.zip')
+        }
+      }
+
       downloadBinaryFile(filename, zip)
     }
   }

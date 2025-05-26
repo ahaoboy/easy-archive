@@ -72,6 +72,8 @@ pub struct File {
     pub mode: Option<u32>,
     #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = "isDir"))]
     pub is_dir: bool,
+    #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = "lastModified"))]
+    pub last_modified: Option<u64>,
 }
 
 #[cfg(feature = "wasm")]
@@ -80,12 +82,19 @@ use wasm_bindgen::prelude::*;
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 impl File {
     #[cfg_attr(feature = "wasm", wasm_bindgen(constructor))]
-    pub fn new(path: String, buffer: Vec<u8>, mode: Option<u32>, is_dir: bool) -> Self {
+    pub fn new(
+        path: String,
+        buffer: Vec<u8>,
+        mode: Option<u32>,
+        is_dir: bool,
+        last_modified: Option<u64>,
+    ) -> Self {
         File {
             path,
             buffer,
             mode,
             is_dir,
+            last_modified,
         }
     }
 }

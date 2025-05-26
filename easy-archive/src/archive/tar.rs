@@ -22,7 +22,8 @@ impl Decode for Tar {
             let mode = file.header().mode().ok();
             let is_dir = path.ends_with("/");
             let path = clean(&path);
-            files.push(File::new(path, buffer, mode, is_dir));
+            let mtime = file.header().mtime().ok();
+            files.push(File::new(path, buffer, mode, is_dir, mtime));
         }
         Some(files)
     }

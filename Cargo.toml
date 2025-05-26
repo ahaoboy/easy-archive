@@ -17,20 +17,24 @@ strum = "0.27"
 strum_macros = "0.27"
 wasm-bindgen = { version = "0.2" }
 tar = { package = "binstall-tar", version = "0.4" }
-zip = { version = "4", default-features = false, features = ["deflate"] }
+zip = { version = "4", default-features = false, features = [
+  "deflate",
+  "time",
+] }
 flate2 = { version = "1", default-features = false, features = ["zlib-rs"] }
 lzma-rs = "0.3"
 ruzstd = "0.8"
 bzip2-rs = "0.1"
 path-clean = "1"
-rc-zip = { version = "5.2" }
-rc-zip-sync = { version = "4.2", features = [
+rc-zip = { version = "5.3" }
+rc-zip-sync = { version = "4.3", features = [
   "bzip2",
   "deflate64",
   "lzma",
   "zstd",
 ] }
 xz2 = "0.1"
+time = { version = "0.3", features = ["wasm-bindgen"] }
 
 # [profile.release]
 # debug = false

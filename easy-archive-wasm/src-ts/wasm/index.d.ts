@@ -14,10 +14,12 @@ export enum Fmt {
 }
 export class File {
   free(): void;
-  constructor(path: string, buffer: Uint8Array, mode: number | null | undefined, is_dir: boolean);
+  constructor(path: string, buffer: Uint8Array, mode: number | null | undefined, is_dir: boolean, last_modified?: bigint | null);
   get mode(): number | undefined;
   set mode(value: number | null | undefined);
   isDir: boolean;
+  get lastModified(): bigint | undefined;
+  set lastModified(value: bigint | null | undefined);
   readonly buffer: Uint8Array;
   readonly path: string;
 }

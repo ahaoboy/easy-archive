@@ -47,6 +47,7 @@ export function createFiles(dir: string): File[] {
           buffer,
           mode: stat.mode,
           isDir: false,
+          lastModified: BigInt(+stat.mtime),
           free,
         }
         files.push(file)
@@ -145,8 +146,8 @@ export function extractToByWasm(
   }
   const jsFiles: File[] = []
   for (const file of files) {
-    const { path, mode, isDir, buffer } = file
-    jsFiles.push({ path, buffer, mode, isDir, free })
+    const { path, mode, isDir, lastModified, buffer } = file
+    jsFiles.push({ path, buffer, mode, isDir, free, lastModified })
     const outputPath = join(outputDir, path)
     if (path.endsWith('/') || isDir) {
       mkdirSync(outputPath, { recursive: true })
