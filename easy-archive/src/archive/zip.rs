@@ -87,9 +87,12 @@ impl Encode for Zip {
         }
 
         for i in files.iter().filter(|i| !i.is_dir) {
+            if !i.path.contains("/") {
+                continue;
+            }
             if let Some(p) = std::path::Path::new(&i.path).parent() {
                 let path = p.to_string_lossy().to_string();
-                if dir_set.contains(&path) {
+                if dir_set.contains(&path) || path.is_empty() {
                     continue;
                 }
 
