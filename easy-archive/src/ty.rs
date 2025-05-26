@@ -108,10 +108,19 @@ impl File {
     pub fn get_buffer(self) -> Vec<u8> {
         self.buffer
     }
+    #[wasm_bindgen(setter = buffer)]
+    pub fn set_buffer(&mut self, buffer: Vec<u8>) {
+        self.buffer = buffer;
+    }
 
     #[wasm_bindgen(getter = path)]
     pub fn get_path(&self) -> String {
         self.path.clone()
+    }
+
+    #[wasm_bindgen(setter = path)]
+    pub fn set_path(&mut self, path: String) {
+        self.path = path;
     }
 }
 
