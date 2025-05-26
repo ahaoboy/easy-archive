@@ -65,7 +65,7 @@ impl Encode for Zip {
     fn encode(files: Vec<File>) -> Option<Vec<u8>> {
         use std::collections::HashSet;
         use std::io::prelude::*;
-        use zip::write::SimpleFileOptions;
+        use zip::write::FullFileOptions;
 
         let mut v = vec![];
         let mut c = std::io::Cursor::new(&mut v);
@@ -73,8 +73,11 @@ impl Encode for Zip {
         let mut dir_set = HashSet::new();
 
         for i in files.iter().filter(|i| i.is_dir) {
+            if dir_set.contains(&i.path) {
+                continue;
+            }
             dir_set.insert(i.path.clone());
-            let mut options = SimpleFileOptions::default();
+            let mut options = FullFileOptions::default();
             if let Some(last) = i.last_modified {
                 let mod_time = OffsetDateTime::from_unix_timestamp(last as i64)
                     .ok()
@@ -96,8 +99,7 @@ impl Encode for Zip {
                     continue;
                 }
 
-                dir_set.insert(i.path.clone());
-                let mut options = SimpleFileOptions::default();
+                let mut options = FullFileOptions::default();
                 if let Some(last) = i.last_modified {
                     let mod_time = OffsetDateTime::from_unix_timestamp(last as i64)
                         .ok()
@@ -106,7 +108,7 @@ impl Encode for Zip {
                         options = options.last_modified_time(offset);
                     }
                 }
-                zip.add_directory(i.path.as_str(), options).ok()?;
+                zip.add_directory(path.clone(), options).ok()?;
                 dir_set.insert(path);
             }
         }
@@ -116,7 +118,7 @@ impl Encode for Zip {
                 continue;
             }
             let mode = i.mode.unwrap_or(0o755);
-            let mut options = SimpleFileOptions::default()
+            let mut options = FullFileOptions::default()
                 .compression_method(zip::CompressionMethod::Stored)
                 .unix_permissions(mode);
 
