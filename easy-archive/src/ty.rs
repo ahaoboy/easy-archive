@@ -72,6 +72,8 @@ pub struct File {
     pub mode: Option<u32>,
     #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = "isDir"))]
     pub is_dir: bool,
+    #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = "lastModified"))]
+    pub last_modified: Option<u64>,
 }
 
 #[cfg(feature = "wasm")]
@@ -80,12 +82,19 @@ use wasm_bindgen::prelude::*;
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 impl File {
     #[cfg_attr(feature = "wasm", wasm_bindgen(constructor))]
-    pub fn new(path: String, buffer: Vec<u8>, mode: Option<u32>, is_dir: bool) -> Self {
+    pub fn new(
+        path: String,
+        buffer: Vec<u8>,
+        mode: Option<u32>,
+        is_dir: bool,
+        last_modified: Option<u64>,
+    ) -> Self {
         File {
             path,
             buffer,
             mode,
             is_dir,
+            last_modified,
         }
     }
 }
@@ -99,10 +108,24 @@ impl File {
     pub fn get_buffer(self) -> Vec<u8> {
         self.buffer
     }
+    #[wasm_bindgen(setter = buffer)]
+    pub fn set_buffer(&mut self, buffer: Vec<u8>) {
+        self.buffer = buffer;
+    }
 
     #[wasm_bindgen(getter = path)]
     pub fn get_path(&self) -> String {
         self.path.clone()
+    }
+
+    #[wasm_bindgen(setter = path)]
+    pub fn set_path(&mut self, path: String) {
+        self.path = path;
+    }
+
+    #[wasm_bindgen]
+    pub fn clone(&self) -> Self {
+        Clone::clone(self)
     }
 }
 

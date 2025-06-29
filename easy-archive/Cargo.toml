@@ -30,3 +30,4 @@ path-clean = { workspace = true }
 rc-zip = { workspace = true, optional = true }
 rc-zip-sync = { workspace = true, optional = true }
 xz2 = { workspace = true, optional = true }
+time = { workspace = true }
