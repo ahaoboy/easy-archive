@@ -27,7 +27,7 @@ export function randomId() {
   return Math.random().toString(36).slice(2)
 }
 
-const free = () => {}
+const free = () => { }
 
 export function createFiles(dir: string): File[] {
   const files: File[] = []
@@ -49,6 +49,9 @@ export function createFiles(dir: string): File[] {
           isDir: false,
           lastModified: BigInt(+stat.mtime),
           free,
+          clone: () => {
+            return file
+          }
         }
         files.push(file)
       }
@@ -146,8 +149,8 @@ export function extractToByWasm(
   }
   const jsFiles: File[] = []
   for (const file of files) {
-    const { path, mode, isDir, lastModified, buffer } = file
-    jsFiles.push({ path, buffer, mode, isDir, free, lastModified })
+    const { path, mode, isDir, lastModified, buffer, clone } = file
+    jsFiles.push({ path, buffer, mode, isDir, free, lastModified, clone })
     const outputPath = join(outputDir, path)
     if (path.endsWith('/') || isDir) {
       mkdirSync(outputPath, { recursive: true })

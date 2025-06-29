@@ -15,6 +15,7 @@ export enum Fmt {
 export class File {
   free(): void;
   constructor(path: string, buffer: Uint8Array, mode: number | null | undefined, is_dir: boolean, last_modified?: bigint | null);
+  clone(): File;
   get mode(): number | undefined;
   set mode(value: number | null | undefined);
   isDir: boolean;

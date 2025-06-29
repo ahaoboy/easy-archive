@@ -122,6 +122,11 @@ impl File {
     pub fn set_path(&mut self, path: String) {
         self.path = path;
     }
+
+    #[wasm_bindgen]
+    pub fn clone(&self) -> Self {
+        Clone::clone(self)
+    }
 }
 
 pub trait Encode {
