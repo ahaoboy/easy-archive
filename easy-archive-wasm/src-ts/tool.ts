@@ -149,7 +149,7 @@ export function extractToByWasm(
   }
   const jsFiles: File[] = []
   for (const file of files) {
-    const { path, mode, isDir, lastModified, buffer, clone } = file
+    const { path, mode, isDir, lastModified, clone, buffer } = file
     jsFiles.push({ path, buffer, mode, isDir, free, lastModified, clone })
     const outputPath = join(outputDir, path)
     if (path.endsWith('/') || isDir) {
