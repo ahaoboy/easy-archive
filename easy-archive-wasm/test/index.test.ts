@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { expect, test } from 'vitest'
-import { decode, extensions, Fmt, guess } from '../src-ts'
+import { decode, encode, extensions, File, Fmt, guess } from '../src-ts'
+import { createFiles } from '../src-ts/tool'
 
 const assetsDir = '../assets'
 const distKey = 'mujs-build-0.0.11/dist-manifest.json'
@@ -34,4 +35,16 @@ test('extension', () => {
       expect(guess(ext)).toEqual(i)
     }
   }
+})
+
+test('encode zip', () => {
+  const v: File[] = createFiles(assetsDir).map(i => {
+    return new File(i.path, i.buffer, i.mode, i.isDir, i.lastModified)
+  })
+
+  const zip = encode(Fmt.Zip, v)
+  expect(zip?.length).toBeTruthy()
+
+  const decodeFiles = decode(Fmt.Zip, zip!)
+  expect(decodeFiles?.length).toBeTruthy()
 })

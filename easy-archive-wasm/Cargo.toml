@@ -1,6 +1,5 @@
 [package]
 name = "easy-archive-wasm"
-version = "0.1.4"
 authors = ["ahaoboy <504595380@qq.com>"]
 edition = "2018"
 
