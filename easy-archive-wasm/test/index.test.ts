@@ -48,3 +48,15 @@ test('encode zip', () => {
   const decodeFiles = decode(Fmt.Zip, zip!)
   expect(decodeFiles?.length).toBeTruthy()
 })
+
+test('encode xz', () => {
+  const v: File[] = createFiles(assetsDir).map(i => {
+    return new File(i.path, i.buffer, i.mode, i.isDir, i.lastModified)
+  })
+
+  const zip = encode(Fmt.TarXz, v)
+  expect(zip?.length).toBeTruthy()
+
+  const decodeFiles = decode(Fmt.TarXz, zip!)
+  expect(decodeFiles?.length).toBeTruthy()
+})

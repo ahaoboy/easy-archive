@@ -120,7 +120,7 @@ impl Encode for Zip {
             let mode = i.mode.unwrap_or(0o755);
             let mut options = FullFileOptions::default()
                 // XZ is too slow in wasm
-                .compression_method(zip::CompressionMethod::ZSTD)
+                .compression_method(zip::CompressionMethod::Zstd)
                 .unix_permissions(mode);
 
             if let Some(last) = i.last_modified {
