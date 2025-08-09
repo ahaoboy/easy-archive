@@ -1,5 +1,5 @@
 use crate::{Decode, Encode, File, Fmt, tool::clean};
-use flate2::read::GzDecoder;
+use flate2::{Compression, bufread::GzEncoder, read::GzDecoder};
 use std::io::{BufReader, Cursor, Read};
 use tar::Archive;
 
@@ -130,7 +130,16 @@ impl Encode for Tar {
     }
 }
 
-impl Encode for TarGz {}
+impl Encode for TarGz {
+    fn encode(files: Vec<File>) -> Option<Vec<u8>> {
+        let tar = Fmt::Tar.encode(files)?;
+        let mut cursor = Cursor::new(tar);
+        let mut encoder = GzEncoder::new(&mut cursor, Compression::default());
+        let mut compressed = Vec::new();
+        encoder.read_to_end(&mut compressed).ok()?;
+        Some(compressed)
+    }
+}
 impl Encode for TarXz {
     #[cfg(feature = "liblzma")]
     fn encode(_files: Vec<File>) -> Option<Vec<u8>> {
@@ -139,41 +148,17 @@ impl Encode for TarXz {
         xz.ok()
     }
 }
+
 impl Encode for TarBz {}
-impl Encode for TarZstd {}
 
-#[cfg(test)]
-mod test {
-    use std::path::PathBuf;
-
-    use crate::{File, Fmt};
-
-    #[test]
-    fn xz_encode() {
+impl Encode for TarZstd {
+    fn encode(files: Vec<File>) -> Option<Vec<u8>> {
+        let tar = Fmt::Tar.encode(files)?;
+        let mut cursor = Cursor::new(tar);
         let mut v = vec![];
-        let base = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let asset_dir = base.join("../assets");
-        for i in std::fs::read_dir(asset_dir).expect("read dir error") {
-            let file_path = i.expect("get path error").path();
-            let path = file_path
-                .file_name()
-                .expect("get name error")
-                .to_string_lossy()
-                .to_string();
-            let buffer = std::fs::read(&file_path).expect("read file error");
-
-            v.push(File {
-                buffer,
-                path,
-                mode: None,
-                is_dir: false,
-                last_modified: None,
-            })
-        }
-
-        let xz = Fmt::TarXz.encode(v).expect("zip error");
-
-        println!("xz {}", xz.len());
-        assert!(xz.len() > 0);
+        let mut encoder = zstd::Encoder::new(&mut v, 6).ok()?;
+        std::io::copy(&mut cursor, &mut encoder).unwrap();
+        encoder.finish().unwrap();
+        Some(v)
     }
 }

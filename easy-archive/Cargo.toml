@@ -31,3 +31,4 @@ rc-zip = { workspace = true, optional = true }
 rc-zip-sync = { workspace = true, optional = true }
 liblzma = { workspace = true, optional = true }
 time = { workspace = true }
+zstd = { workspace = true }

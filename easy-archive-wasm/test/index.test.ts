@@ -37,26 +37,19 @@ test('extension', () => {
   }
 })
 
-test('encode zip', () => {
-  const v: File[] = createFiles(assetsDir).map(i => {
-    return new File(i.path, i.buffer, i.mode, i.isDir, i.lastModified)
-  })
+test('encode decode', () => {
+  // FIXME: support encode bz
+  for (const i of [Fmt.Zip, Fmt.Tar, Fmt.TarGz, Fmt.TarXz, Fmt.TarZstd]) {
+    const v: File[] = createFiles(assetsDir).map(i => {
+      return new File(i.path, i.buffer, i.mode, i.isDir, i.lastModified)
+    })
 
-  const zip = encode(Fmt.Zip, v)
-  expect(zip?.length).toBeTruthy()
+    const compress = encode(i, v)
+    expect(compress?.length).toBeTruthy()
 
-  const decodeFiles = decode(Fmt.Zip, zip!)
-  expect(decodeFiles?.length).toBeTruthy()
+    const decodeFiles = decode(i, compress!)
+    console.log(extensions(i), compress?.length)
+    expect(decodeFiles?.length).toBeTruthy()
+  }
 })
 
-test('encode xz', () => {
-  const v: File[] = createFiles(assetsDir).map(i => {
-    return new File(i.path, i.buffer, i.mode, i.isDir, i.lastModified)
-  })
-
-  const zip = encode(Fmt.TarXz, v)
-  expect(zip?.length).toBeTruthy()
-
-  const decodeFiles = decode(Fmt.TarXz, zip!)
-  expect(decodeFiles?.length).toBeTruthy()
-})

@@ -139,39 +139,3 @@ impl Encode for Zip {
         Some(v)
     }
 }
-
-#[cfg(test)]
-mod test {
-    use std::path::PathBuf;
-
-    use crate::{File, Fmt};
-
-    #[test]
-    fn test_encode() {
-        let mut v = vec![];
-        let base = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let asset_dir = base.join("../assets");
-        for i in std::fs::read_dir(asset_dir).expect("read dir error") {
-            let file_path = i.expect("get path error").path();
-            let path = file_path
-                .file_name()
-                .expect("get name error")
-                .to_string_lossy()
-                .to_string();
-            let buffer = std::fs::read(&file_path).expect("read file error");
-
-            v.push(File {
-                buffer,
-                path,
-                mode: None,
-                is_dir: false,
-                last_modified: None,
-            })
-        }
-
-        let zip = Fmt::Zip.encode(v).expect("zip error");
-
-        println!("zip {}", zip.len());
-        assert!(zip.len() > 0);
-    }
-}
