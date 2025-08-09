@@ -3,7 +3,7 @@ members = ["easy-archive", "easy-archive-wasm"]
 resolver = "2"
 
 [workspace.package]
-version = "0.2.1"
+version = "0.2.2"
 edition = "2024"
 license = "MIT"
 description = "easy-archive"
@@ -40,6 +40,7 @@ rc-zip-sync = { version = "4", features = [
 ] }
 liblzma = "0.4"
 time = { version = "0.3", features = ["wasm-bindgen"] }
+zstd = "0.13"
 
 # [profile.release]
 # debug = false

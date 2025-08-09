@@ -1,6 +1,6 @@
 {
   "name": "@easy-install/easy-archive",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "easy-archive",
   "main": "esm/index.js",
   "bin": {
