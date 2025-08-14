@@ -7,41 +7,43 @@ import {
   readFileSync,
   statSync,
   writeFileSync,
-} from 'fs'
-import { decode, File, guess } from './wasm'
-import { dirname, join, relative } from 'path'
-import { tmpdir } from 'os'
-import { execSync } from 'child_process'
+} from "fs";
+import { decode, File, guess } from "./wasm";
+import { dirname, join, relative } from "path";
+import { tmpdir } from "os";
+import { execSync } from "child_process";
+import process from "node:process";
+import { Buffer } from "node:buffer";
 
 export function isMsys() {
-  return !!process.env['MSYSTEM']
+  return !!process.env["MSYSTEM"];
 }
 
 export function toMsysPath(s: string): string {
-  s = s.replaceAll('\\', '/')
-  s = s.replace(/^([A-Za-z]):\//, (_, drive) => `/${drive.toLowerCase()}/`)
-  return s
+  s = s.replaceAll("\\", "/");
+  s = s.replace(/^([A-Za-z]):\//, (_, drive) => `/${drive.toLowerCase()}/`);
+  return s;
 }
 
 export function randomId() {
-  return Math.random().toString(36).slice(2)
+  return Math.random().toString(36).slice(2);
 }
 
-const free = () => { }
+const free = () => {};
 
 export function createFiles(dir: string): File[] {
-  const files: File[] = []
+  const files: File[] = [];
   async function dfs(currentPath: string) {
-    const entries = readdirSync(currentPath)
+    const entries = readdirSync(currentPath);
     for (const entry of entries) {
-      const fullPath = join(currentPath, entry)
-      const stat = statSync(fullPath)
+      const fullPath = join(currentPath, entry);
+      const stat = statSync(fullPath);
       if (stat.isDirectory()) {
         // ignore empty dir
-        dfs(fullPath)
+        dfs(fullPath);
       } else if (stat.isFile()) {
-        const relativePath = relative(dir, fullPath).replaceAll('\\', '/')
-        const buffer = readFileSync(fullPath)
+        const relativePath = relative(dir, fullPath).replaceAll("\\", "/");
+        const buffer = readFileSync(fullPath);
         const file = {
           path: relativePath,
           buffer,
@@ -50,170 +52,170 @@ export function createFiles(dir: string): File[] {
           lastModified: BigInt(+stat.mtime),
           free,
           clone: () => {
-            return file
-          }
-        }
-        files.push(file)
+            return file;
+          },
+        };
+        files.push(file);
       }
     }
   }
-  dfs(dir)
-  return files
+  dfs(dir);
+  return files;
 }
 
 export function extractToByShell(
   compressedFilePath: string,
   outputDir?: string,
 ): undefined | { outputDir: string; files: File[] } {
-  const tmpDir = join(tmpdir(), randomId())
-  let oriDir = outputDir ?? tmpDir
-  const needCopy = !!outputDir
+  const tmpDir = join(tmpdir(), randomId());
+  let oriDir = outputDir ?? tmpDir;
+  const needCopy = !!outputDir;
 
-  outputDir = tmpDir
+  outputDir = tmpDir;
   if (!existsSync(outputDir)) {
-    mkdirSync(outputDir, { recursive: true })
+    mkdirSync(outputDir, { recursive: true });
   }
 
-  if (isMsys() && !compressedFilePath.endsWith('.zip')) {
-    compressedFilePath = toMsysPath(compressedFilePath)
-    outputDir = toMsysPath(outputDir)
+  if (isMsys() && !compressedFilePath.endsWith(".zip")) {
+    compressedFilePath = toMsysPath(compressedFilePath);
+    outputDir = toMsysPath(outputDir);
   }
   if (!existsSync(oriDir)) {
-    mkdirSync(oriDir, { recursive: true })
+    mkdirSync(oriDir, { recursive: true });
   }
   const rules = [
     {
-      ext: ['.zip'],
-      cmd: process.platform !== 'win32'
+      ext: [".zip"],
+      cmd: process.platform !== "win32"
         ? `unzip -o "${compressedFilePath}" -d "${outputDir}"`
         : `powershell -c "Expand-Archive -Path ${compressedFilePath} -DestinationPath  ${outputDir} -Force"`,
     },
     {
-      ext: ['.tar', '.tar.xz'],
+      ext: [".tar", ".tar.xz"],
       cmd: `tar -xJf "${compressedFilePath}" -C "${outputDir}"`,
     },
     {
-      ext: ['.tar.gz', '.tgz'],
+      ext: [".tar.gz", ".tgz"],
       cmd: `tar -xzvf "${compressedFilePath}" -C "${outputDir}"`,
     },
     {
-      ext: ['.tar.bz2'],
+      ext: [".tar.bz2"],
       cmd: `tar -xjf "${compressedFilePath}" -C "${outputDir}"`,
     },
-    { ext: ['.7z'], cmd: `7z x "${compressedFilePath}" -o"${outputDir}"` },
-    { ext: ['.rar'], cmd: `unrar x "${compressedFilePath}" "${outputDir}"` },
-    { ext: ['.rar'], cmd: `unrar x "${compressedFilePath}" "${outputDir}"` },
-  ] as const
+    { ext: [".7z"], cmd: `7z x "${compressedFilePath}" -o"${outputDir}"` },
+    { ext: [".rar"], cmd: `unrar x "${compressedFilePath}" "${outputDir}"` },
+    { ext: [".rar"], cmd: `unrar x "${compressedFilePath}" "${outputDir}"` },
+  ] as const;
 
   for (const { ext, cmd } of rules) {
     for (const e of ext) {
       if (compressedFilePath.endsWith(e)) {
-        execSync(cmd)
+        execSync(cmd);
       }
     }
   }
-  const files = createFiles(oriDir)
+  const files = createFiles(oriDir);
   if (needCopy && tmpDir !== oriDir) {
-    cpSync(tmpDir, oriDir, { recursive: true })
+    cpSync(tmpDir, oriDir, { recursive: true });
   }
-  return { outputDir: oriDir, files }
+  return { outputDir: oriDir, files };
 }
 
 // 256mb
-const MAX_SIZE = 1024 * 1024 * 256
+const MAX_SIZE = 1024 * 1024 * 256;
 export function extractToByWasm(
   compressedFilePath: string,
   outputDir?: string,
 ): undefined | { outputDir: string; files: File[] } {
-  const buf = new Uint8Array(readFileSync(compressedFilePath))
+  const buf = new Uint8Array(readFileSync(compressedFilePath));
   if (buf.length > MAX_SIZE) {
-    return
+    return;
   }
-  const fmt = guess(compressedFilePath)
+  const fmt = guess(compressedFilePath);
   if (!outputDir) {
-    outputDir = join(tmpdir(), randomId())
+    outputDir = join(tmpdir(), randomId());
     if (!existsSync(outputDir)) {
-      mkdirSync(outputDir, { recursive: true })
+      mkdirSync(outputDir, { recursive: true });
     }
   }
   if (fmt === undefined) {
-    console.log('extractTo not support this file type')
-    return undefined
+    console.log("extractTo not support this file type");
+    return undefined;
   }
   if (!existsSync(outputDir)) {
-    mkdirSync(outputDir, { recursive: true })
+    mkdirSync(outputDir, { recursive: true });
   }
-  const files = decode(fmt, buf)
+  const files = decode(fmt, buf);
   if (!files) {
-    return undefined
+    return undefined;
   }
-  const jsFiles: File[] = []
+  const jsFiles: File[] = [];
   for (const file of files) {
-    const { path, mode, isDir, lastModified, clone, buffer } = file
-    jsFiles.push({ path, buffer, mode, isDir, free, lastModified, clone })
-    const outputPath = join(outputDir, path)
-    if (path.endsWith('/') || isDir) {
-      mkdirSync(outputPath, { recursive: true })
-      continue
+    const { path, mode, isDir, lastModified, clone, buffer } = file;
+    jsFiles.push({ path, buffer, mode, isDir, free, lastModified, clone });
+    const outputPath = join(outputDir, path);
+    if (path.endsWith("/") || isDir) {
+      mkdirSync(outputPath, { recursive: true });
+      continue;
     }
-    const dir = dirname(outputPath)
+    const dir = dirname(outputPath);
     if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true })
+      mkdirSync(dir, { recursive: true });
     }
-    writeFileSync(outputPath, buffer)
+    writeFileSync(outputPath, buffer);
 
-    if (mode && process.platform !== 'win32') {
-      chmodSync(outputPath, mode)
+    if (mode && process.platform !== "win32") {
+      chmodSync(outputPath, mode);
     }
   }
-  return { outputDir, files: jsFiles }
+  return { outputDir, files: jsFiles };
 }
 
 export function extractTo(compressedFilePath: string, outputDir?: string): {
-  outputDir: string
-  files: File[]
-  type: 'wasm' | 'shell'
+  outputDir: string;
+  files: File[];
+  type: "wasm" | "shell";
 } | undefined {
   try {
-    const r = extractToByWasm(compressedFilePath, outputDir)
+    const r = extractToByWasm(compressedFilePath, outputDir);
     if (r) {
-      return { ...r, type: 'wasm' }
+      return { ...r, type: "wasm" };
     }
   } catch {
   }
-  const r = extractToByShell(compressedFilePath, outputDir)
+  const r = extractToByShell(compressedFilePath, outputDir);
   if (r) {
-    return { ...r, type: 'shell' }
+    return { ...r, type: "shell" };
   }
 }
 
 export function getFetchOption() {
   const headers: HeadersInit = {
-    'User-Agent': 'GitHub Actions',
-  }
+    "User-Agent": "GitHub Actions",
+  };
   if (process.env.GITHUB_TOKEN) {
-    headers.Authorization = `token ${process.env.GITHUB_TOKEN}`
+    headers.Authorization = `token ${process.env.GITHUB_TOKEN}`;
   }
   return {
     headers,
-  }
+  };
 }
 export async function downloadToFile(url: string, outputPath?: string) {
   if (!outputPath) {
-    const name = url.split('/').at(-1)!
-    const dir = join(tmpdir(), randomId())
+    const name = url.split("/").at(-1)!;
+    const dir = join(tmpdir(), randomId());
     if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true })
+      mkdirSync(dir, { recursive: true });
     }
-    outputPath = join(dir, name)
+    outputPath = join(dir, name);
   }
-  outputPath = outputPath.replaceAll('\\', '/')
-  const dir = outputPath.split('/').slice(0, -1).join('/')
+  outputPath = outputPath.replaceAll("\\", "/");
+  const dir = outputPath.split("/").slice(0, -1).join("/");
   if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true })
+    mkdirSync(dir, { recursive: true });
   }
-  const response = await fetch(url, getFetchOption())
-  const buf = await response.arrayBuffer()
-  writeFileSync(outputPath, Buffer.from(buf))
-  return outputPath
+  const response = await fetch(url, getFetchOption());
+  const buf = await response.arrayBuffer();
+  writeFileSync(outputPath, Buffer.from(buf));
+  return outputPath;
 }
