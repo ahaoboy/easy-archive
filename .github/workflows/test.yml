@@ -84,10 +84,12 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v3
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - uses: actions/setup-node@v4
         with:
-          # github action use node20
-          node-version: 20
+          node-version: latest
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -103,29 +105,29 @@ jobs:
           pnpm run test:run
       - name: test cli
         run: |
-          node --version
+          bun --version
           cd easy-archive-wasm
           pnpm run build
           curl -L -o mujs.tar.xz https://github.com/ahaoboy/mujs-build/releases/download/v0.0.11/mujs-${{ matrix.target }}.tar.xz
-          node ./cjs/cli.js ./mujs.tar.xz ./mujs
+          bun ./cjs/cli.js ./mujs.tar.xz ./mujs
           ls -lh ./mujs
           echo "console.log(1+1)" > ./a.js
           ./mujs/mujs ./a.js
 
           curl -L -o 7z.tar.xz https://github.com/ip7z/7zip/releases/download/24.09/7z2409-linux-x64.tar.xz
-          node ./cjs/cli.js ./7z.tar.xz ./7z
+          bun ./cjs/cli.js ./7z.tar.xz ./7z
 
           curl -L -o bun.zip https://github.com/oven-sh/bun/releases/latest/download/bun-darwin-x64.zip
-          node ./cjs/cli.js ./bun.zip ./bun
+          bun ./cjs/cli.js ./bun.zip ./bun
 
           curl -L -o spidermonkey.tar.xz https://github.com/ahaoboy/spidermonkey-build/releases/download/v0.1.5/spidermonkey-x86_64-unknown-linux-gnu.tar.xz
-          node ./cjs/cli.js ./spidermonkey.tar.xz ./spidermonkey
+          bun ./cjs/cli.js ./spidermonkey.tar.xz ./spidermonkey
 
           curl -L -o v8.tar.xz https://github.com/ahaoboy/v8-build/releases/download/v0.1.6/v8-x86_64-unknown-linux-gnu.tar.xz
-          node ./cjs/cli.js ./v8.tar.xz ./v8
+          bun ./cjs/cli.js ./v8.tar.xz ./v8
 
           curl -L -o zig.tar.xz https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz
-          node ./cjs/cli.js ./zig.tar.xz ./zig
+          bun ./cjs/cli.js ./zig.tar.xz ./zig
 
           curl -L -o bun-profile.zip https://github.com/oven-sh/bun/releases/download/bun-v1.2.3/bun-linux-aarch64-musl-profile.zip
-          node ./cjs/cli.js ./bun-profile.zip ./bun-profile
+          bun ./cjs/cli.js ./bun-profile.zip ./bun-profile
