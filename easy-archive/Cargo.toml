@@ -8,7 +8,8 @@ repository = { workspace = true }
 authors = { workspace = true }
 
 [[bin]]
-name = "easy-archive"
+path="src/main.rs"
+name = "ea"
 
 [features]
 default = ["cli"]
