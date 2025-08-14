@@ -9,7 +9,7 @@ authors = { workspace = true }
 
 [[bin]]
 path="src/main.rs"
-name = "ea"
+name = "easy-archive"
 
 [features]
 default = ["cli"]
