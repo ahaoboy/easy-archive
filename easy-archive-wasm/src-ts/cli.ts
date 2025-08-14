@@ -113,7 +113,7 @@ function main() {
     );
     for (const file of files) {
       const outputPath = join(output, file.path).replaceAll("\\", "/");
-      const outputDir = dirname(outputPath);
+      const outputDir = dirname(resolve(outputPath));
 
       if (!existsSync(outputDir)) {
         mkdirSync(outputDir, { recursive: true });
