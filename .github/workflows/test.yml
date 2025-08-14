@@ -108,7 +108,7 @@ jobs:
           bun --version
           cd easy-archive-wasm
           pnpm run build
-          curl -L -o mujs.tar.xz https://github.com/ahaoboy/mujs-build/releases/download/v0.0.11/mujs-${{ matrix.target }}.tar.xz
+          curl -L -o mujs.tar.xz https://github.com/ahaoboy/mujs-build/releases/latest/download/mujs-${{ matrix.target }}.tar.xz
           bun ./cjs/cli.js ./mujs.tar.xz ./mujs
           ls -lh ./mujs
           echo "console.log(1+1)" > ./a.js
