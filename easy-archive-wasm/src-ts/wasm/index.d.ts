@@ -23,5 +23,6 @@ export class File {
   set lastModified(value: bigint | null | undefined);
   buffer: Uint8Array;
   path: string;
+  readonly bufferSize: number;
 }
 

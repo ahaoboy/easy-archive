@@ -123,6 +123,10 @@ impl File {
         self.path = path;
     }
 
+    #[wasm_bindgen(getter = bufferSize)]
+    pub fn buffer_size(&self) -> usize {
+        self.buffer.len()
+    }
     #[wasm_bindgen]
     pub fn clone(&self) -> Self {
         Clone::clone(self)

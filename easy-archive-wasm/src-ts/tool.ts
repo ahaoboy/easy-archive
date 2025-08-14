@@ -12,7 +12,6 @@ import { decode, File, guess } from "./wasm";
 import { dirname, join, relative } from "path";
 import { tmpdir } from "os";
 import { execSync } from "child_process";
-import process from "node:process";
 import { Buffer } from "node:buffer";
 
 export function isMsys() {
@@ -44,7 +43,7 @@ export function createFiles(dir: string): File[] {
       } else if (stat.isFile()) {
         const relativePath = relative(dir, fullPath).replaceAll("\\", "/");
         const buffer = readFileSync(fullPath);
-        const file = {
+        const file: File = {
           path: relativePath,
           buffer,
           mode: stat.mode,
@@ -54,6 +53,7 @@ export function createFiles(dir: string): File[] {
           clone: () => {
             return file;
           },
+          bufferSize: buffer.length,
         };
         files.push(file);
       }
@@ -152,7 +152,16 @@ export function extractToByWasm(
   const jsFiles: File[] = [];
   for (const file of files) {
     const { path, mode, isDir, lastModified, clone, buffer } = file;
-    jsFiles.push({ path, buffer, mode, isDir, free, lastModified, clone });
+    jsFiles.push({
+      path,
+      buffer,
+      mode,
+      isDir,
+      free,
+      lastModified,
+      clone,
+      bufferSize: buffer.length,
+    });
     const outputPath = join(outputDir, path);
     if (path.endsWith("/") || isDir) {
       mkdirSync(outputPath, { recursive: true });
