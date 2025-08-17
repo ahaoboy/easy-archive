@@ -53,9 +53,10 @@ fn decode_rc_zip(buffer: &[u8]) -> Option<Vec<File>> {
 }
 
 impl Decode for Zip {
-    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
+    fn decode<T: AsRef<[u8]>>(buffer: T) -> Option<Vec<File>> {
+        let buffer = buffer.as_ref();
         #[cfg(feature = "zip")]
-        return decode_zip(&buffer);
+        return decode_zip(buffer);
         #[cfg(feature = "rc-zip")]
         return decode_rc_zip(&buffer);
     }

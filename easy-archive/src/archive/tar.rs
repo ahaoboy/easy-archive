@@ -6,7 +6,7 @@ use tar::Archive;
 pub struct Tar;
 
 impl Decode for Tar {
-    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
+    fn decode<T: AsRef<[u8]>>(buffer: T) -> Option<Vec<File>> {
         let mut files = Vec::new();
         let cur = Cursor::new(buffer);
         let mut a = Archive::new(cur);
@@ -31,8 +31,9 @@ impl Decode for Tar {
 
 pub struct TarGz;
 impl Decode for TarGz {
-    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
-        let mut decoder = GzDecoder::new(&buffer[..]);
+    fn decode<T: AsRef<[u8]>>(buffer: T) -> Option<Vec<File>> {
+        let buffer = buffer.as_ref();
+        let mut decoder = GzDecoder::new(buffer);
         let mut decompressed = Vec::new();
         decoder.read_to_end(&mut decompressed).ok()?;
         Tar::decode(decompressed)
@@ -72,22 +73,23 @@ fn decode_lzma_rs(buffer: &[u8]) -> Option<Vec<File>> {
 
 pub struct TarXz;
 impl Decode for TarXz {
-    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
+    fn decode<T: AsRef<[u8]>>(buffer: T) -> Option<Vec<File>> {
+        let buffer = buffer.as_ref();
         #[cfg(feature = "liblzma")]
-        return decode_xz2(&buffer);
+        return decode_xz2(buffer);
         #[allow(unreachable_code)]
         #[cfg(feature = "lzma-rs")]
-        return decode_lzma_rs(&buffer);
+        return decode_lzma_rs(buffer);
     }
 }
 
 pub struct TarBz;
 impl Decode for TarBz {
-    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
+    fn decode<T: AsRef<[u8]>>(buffer: T) -> Option<Vec<File>> {
         use bzip2_rs::DecoderReader;
         let cur = Cursor::new(buffer);
         let reader = BufReader::new(DecoderReader::new(cur));
-        let v = reader.bytes().map(|i| i.unwrap()).collect();
+        let v: Vec<_> = reader.bytes().map(|i| i.unwrap()).collect();
         Tar::decode(v)
     }
 }
@@ -95,7 +97,7 @@ use ruzstd::decoding::StreamingDecoder;
 
 pub struct TarZstd;
 impl Decode for TarZstd {
-    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
+    fn decode<T: AsRef<[u8]>>(buffer: T) -> Option<Vec<File>> {
         let cur = Cursor::new(buffer);
         let mut decoder = StreamingDecoder::new(cur).unwrap();
         let mut result = Vec::new();
@@ -149,7 +151,11 @@ impl Encode for TarXz {
     }
 }
 
-impl Encode for TarBz {}
+impl Encode for TarBz {
+    fn encode(_files: Vec<File>) -> Option<Vec<u8>> {
+        todo!()
+    }
+}
 
 impl Encode for TarZstd {
     fn encode(files: Vec<File>) -> Option<Vec<u8>> {
