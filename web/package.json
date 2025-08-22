@@ -14,12 +14,12 @@
     "@ant-design/v5-patch-for-react-19": "1.0.3",
     "@easy-install/easy-archive": "workspace:*",
     "antd": "5.27.0",
-    "cross-env": "^10.0.0",
     "react": "19.1.1",
-    "react-dom": "19.1.1",
-    "vite-bundle-analyzer": "^1.2.1"
+    "react-dom": "19.1.1"
   },
   "devDependencies": {
+    "cross-env": "^10.0.0",
+    "vite-bundle-analyzer": "^1.2.1",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.7",
     "@vitejs/plugin-react": "5.0.0",
