@@ -11,11 +11,11 @@ pnpm install @easy-install/easy-archive -g
 ## usage
 
 ```bash
-# list files
-easy-archive test.tar.gz
+# compress files
+easy-archive test test.zip
 
-# Unzip to a folder
-easy-archive test.tar.gz ./test
+# decompress
+easy-archive test.zip ./test
 ```
 
 ## web

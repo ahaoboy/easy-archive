@@ -123,6 +123,10 @@ impl File {
         self.path = path;
     }
 
+    #[wasm_bindgen(getter = bufferSize)]
+    pub fn buffer_size(&self) -> usize {
+        self.buffer.len()
+    }
     #[wasm_bindgen]
     pub fn clone(&self) -> Self {
         Clone::clone(self)
@@ -130,13 +134,11 @@ impl File {
 }
 
 pub trait Encode {
-    fn encode(_files: Vec<File>) -> Option<Vec<u8>> {
-        todo!()
-    }
+    fn encode(files: Vec<File>) -> Option<Vec<u8>>;
 }
 
 pub trait Decode {
-    fn decode(buffer: Vec<u8>) -> Option<Vec<File>>;
+    fn decode<T: AsRef<[u8]>>(buffer: T) -> Option<Vec<File>>;
 }
 
 pub trait Archive: Encode + Decode {}

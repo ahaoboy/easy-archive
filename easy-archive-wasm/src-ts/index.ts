@@ -1,2 +1,2 @@
-export * from './wasm'
-export * from './share'
+export * from "./wasm";
+export * from "./share";

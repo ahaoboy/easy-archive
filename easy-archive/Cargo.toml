@@ -8,6 +8,7 @@ repository = { workspace = true }
 authors = { workspace = true }
 
 [[bin]]
+path="src/main.rs"
 name = "easy-archive"
 
 [features]
@@ -31,3 +32,4 @@ rc-zip = { workspace = true, optional = true }
 rc-zip-sync = { workspace = true, optional = true }
 liblzma = { workspace = true, optional = true }
 time = { workspace = true }
+zstd = { workspace = true }

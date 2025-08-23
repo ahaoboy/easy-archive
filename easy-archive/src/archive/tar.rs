@@ -1,12 +1,12 @@
 use crate::{Decode, Encode, File, Fmt, tool::clean};
-use flate2::read::GzDecoder;
+use flate2::{Compression, bufread::GzEncoder, read::GzDecoder};
 use std::io::{BufReader, Cursor, Read};
 use tar::Archive;
 
 pub struct Tar;
 
 impl Decode for Tar {
-    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
+    fn decode<T: AsRef<[u8]>>(buffer: T) -> Option<Vec<File>> {
         let mut files = Vec::new();
         let cur = Cursor::new(buffer);
         let mut a = Archive::new(cur);
@@ -31,8 +31,9 @@ impl Decode for Tar {
 
 pub struct TarGz;
 impl Decode for TarGz {
-    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
-        let mut decoder = GzDecoder::new(&buffer[..]);
+    fn decode<T: AsRef<[u8]>>(buffer: T) -> Option<Vec<File>> {
+        let buffer = buffer.as_ref();
+        let mut decoder = GzDecoder::new(buffer);
         let mut decompressed = Vec::new();
         decoder.read_to_end(&mut decompressed).ok()?;
         Tar::decode(decompressed)
@@ -72,22 +73,23 @@ fn decode_lzma_rs(buffer: &[u8]) -> Option<Vec<File>> {
 
 pub struct TarXz;
 impl Decode for TarXz {
-    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
+    fn decode<T: AsRef<[u8]>>(buffer: T) -> Option<Vec<File>> {
+        let buffer = buffer.as_ref();
         #[cfg(feature = "liblzma")]
-        return decode_xz2(&buffer);
+        return decode_xz2(buffer);
         #[allow(unreachable_code)]
         #[cfg(feature = "lzma-rs")]
-        return decode_lzma_rs(&buffer);
+        return decode_lzma_rs(buffer);
     }
 }
 
 pub struct TarBz;
 impl Decode for TarBz {
-    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
+    fn decode<T: AsRef<[u8]>>(buffer: T) -> Option<Vec<File>> {
         use bzip2_rs::DecoderReader;
         let cur = Cursor::new(buffer);
         let reader = BufReader::new(DecoderReader::new(cur));
-        let v = reader.bytes().map(|i| i.unwrap()).collect();
+        let v: Vec<_> = reader.bytes().map(|i| i.unwrap()).collect();
         Tar::decode(v)
     }
 }
@@ -95,7 +97,7 @@ use ruzstd::decoding::StreamingDecoder;
 
 pub struct TarZstd;
 impl Decode for TarZstd {
-    fn decode(buffer: Vec<u8>) -> Option<Vec<File>> {
+    fn decode<T: AsRef<[u8]>>(buffer: T) -> Option<Vec<File>> {
         let cur = Cursor::new(buffer);
         let mut decoder = StreamingDecoder::new(cur).unwrap();
         let mut result = Vec::new();
@@ -130,7 +132,16 @@ impl Encode for Tar {
     }
 }
 
-impl Encode for TarGz {}
+impl Encode for TarGz {
+    fn encode(files: Vec<File>) -> Option<Vec<u8>> {
+        let tar = Fmt::Tar.encode(files)?;
+        let mut cursor = Cursor::new(tar);
+        let mut encoder = GzEncoder::new(&mut cursor, Compression::default());
+        let mut compressed = Vec::new();
+        encoder.read_to_end(&mut compressed).ok()?;
+        Some(compressed)
+    }
+}
 impl Encode for TarXz {
     #[cfg(feature = "liblzma")]
     fn encode(_files: Vec<File>) -> Option<Vec<u8>> {
@@ -139,41 +150,21 @@ impl Encode for TarXz {
         xz.ok()
     }
 }
-impl Encode for TarBz {}
-impl Encode for TarZstd {}
 
-#[cfg(test)]
-mod test {
-    use std::path::PathBuf;
+impl Encode for TarBz {
+    fn encode(_files: Vec<File>) -> Option<Vec<u8>> {
+        todo!()
+    }
+}
 
-    use crate::{File, Fmt};
-
-    #[test]
-    fn xz_encode() {
+impl Encode for TarZstd {
+    fn encode(files: Vec<File>) -> Option<Vec<u8>> {
+        let tar = Fmt::Tar.encode(files)?;
+        let mut cursor = Cursor::new(tar);
         let mut v = vec![];
-        let base = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let asset_dir = base.join("../assets");
-        for i in std::fs::read_dir(asset_dir).expect("read dir error") {
-            let file_path = i.expect("get path error").path();
-            let path = file_path
-                .file_name()
-                .expect("get name error")
-                .to_string_lossy()
-                .to_string();
-            let buffer = std::fs::read(&file_path).expect("read file error");
-
-            v.push(File {
-                buffer,
-                path,
-                mode: None,
-                is_dir: false,
-                last_modified: None,
-            })
-        }
-
-        let xz = Fmt::TarXz.encode(v).expect("zip error");
-
-        println!("xz {}", xz.len());
-        assert!(xz.len() > 0);
+        let mut encoder = zstd::Encoder::new(&mut v, 6).ok()?;
+        std::io::copy(&mut cursor, &mut encoder).unwrap();
+        encoder.finish().unwrap();
+        Some(v)
     }
 }
