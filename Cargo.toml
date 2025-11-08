@@ -17,7 +17,7 @@ strum = "0.27"
 strum_macros = "0.27"
 wasm-bindgen = { version = "0.2" }
 tar = { package = "binstall-tar", version = "0.4" }
-zip = { version = "4", default-features = false, features = [
+zip = { version = "6", default-features = false, features = [
   # "aes-crypto" # getrandom error
   "deflate",
   "time",
@@ -47,14 +47,6 @@ time = { version = "0.3", features = ["wasm-bindgen"] }
 # strip = true
 # opt-level = 3
 # codegen-units = 1
-
-
-[profile.release]
-debug = false
-lto = true
-strip = true
-opt-level = 3
-codegen-units = 1
 
 [profile.bloaty]
 debug = true
