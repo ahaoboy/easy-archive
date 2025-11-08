@@ -7,16 +7,17 @@ use crate::{
     traits::{Decode, Encode},
     utils::{check_duplicate_files, clean},
 };
+
 use std::collections::HashSet;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
-use time::OffsetDateTime;
+
 use zip::DateTime;
 
-#[cfg(feature = "zip")]
+use time::OffsetDateTime;
+
 /// ZIP archive format handler
 pub struct Zip;
 
-#[cfg(feature = "zip")]
 impl Decode for Zip {
     fn decode<T: AsRef<[u8]>>(buffer: T) -> Result<Vec<File>> {
         let buffer = buffer.as_ref();
@@ -79,7 +80,6 @@ impl Decode for Zip {
     }
 }
 
-#[cfg(feature = "zip")]
 impl Encode for Zip {
     fn encode(files: Vec<File>) -> Result<Vec<u8>> {
         // Check for duplicate files before encoding (fail fast)

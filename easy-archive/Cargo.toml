@@ -14,7 +14,7 @@ name = "easy-archive"
 [features]
 default = ["tar", "tar-gz", "tar-xz", "tar-bz", "tar-zstd", "zip"]
 cli = ["default"]
-wasm = ["wasm-bindgen", "tar", "tar-gz", "tar-xz", "tar-zstd", "zip"]
+wasm = ["wasm-bindgen", "default"]
 
 # Format features
 tar = ["dep:tar"]
