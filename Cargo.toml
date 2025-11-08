@@ -38,7 +38,7 @@ rc-zip-sync = { version = "4", features = [
   "lzma",
   "zstd",
 ] }
-liblzma = "0.4.2"
+liblzma = "0.4"
 time = { version = "0.3", features = ["wasm-bindgen"] }
 
 # [profile.release]
@@ -47,3 +47,17 @@ time = { version = "0.3", features = ["wasm-bindgen"] }
 # strip = true
 # opt-level = 3
 # codegen-units = 1
+
+
+[profile.release]
+debug = false
+lto = true
+strip = true
+opt-level = 3
+codegen-units = 1
+
+[profile.bloaty]
+debug = true
+lto = false
+strip = false
+inherits = 'release'
