@@ -133,11 +133,9 @@ fn encode_tar_archive(files: Vec<File>) -> Result<Vec<u8>> {
 // Plain TAR format
 // ============================================================================
 
-#[cfg(feature = "tar")]
 /// Plain TAR archive format handler
 pub struct Tar;
 
-#[cfg(feature = "tar")]
 impl Decode for Tar {
     fn decode<T: AsRef<[u8]>>(buffer: T) -> Result<Vec<File>> {
         let cur = Cursor::new(buffer);
@@ -145,7 +143,6 @@ impl Decode for Tar {
     }
 }
 
-#[cfg(feature = "tar")]
 impl Encode for Tar {
     fn encode(files: Vec<File>) -> Result<Vec<u8>> {
         encode_tar_archive(files)
