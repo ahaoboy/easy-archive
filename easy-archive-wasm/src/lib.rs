@@ -13,10 +13,10 @@ pub fn extensions(fmt: Fmt) -> Vec<String> {
 
 #[wasm_bindgen]
 pub fn decode(fmt: Fmt, buffer: Vec<u8>) -> Option<Vec<File>> {
-    fmt.decode(buffer)
+    fmt.decode(buffer).ok()
 }
 
 #[wasm_bindgen]
 pub fn encode(fmt: Fmt, files: Vec<File>) -> Option<Vec<u8>> {
-    fmt.encode(files)
+    fmt.encode(files).ok()
 }

@@ -12,24 +12,41 @@ path="src/main.rs"
 name = "easy-archive"
 
 [features]
-default = ["cli"]
-wasm = ["wasm-bindgen", "zip", "lzma-rs", "liblzma"]
-cli = ["zip", "liblzma"]
+default = ["tar", "tar-gz", "tar-xz", "tar-bz", "tar-zstd", "zip"]
+cli = ["default"]
+wasm = ["wasm-bindgen", "tar", "tar-gz", "tar-xz", "tar-zstd", "zip"]
+
+# Format features
+tar = ["dep:tar"]
+tar-gz = ["tar", "dep:flate2"]
+tar-xz = ["tar", "dep:liblzma"]
+tar-bz = ["tar", "dep:bzip2-rs"]
+tar-zstd = ["tar", "dep:zstd", "dep:ruzstd"]
+zip = ["dep:zip", "dep:time"]
+
+# Alternative zip implementation (optional)
 rc-zip = ["dep:rc-zip", "dep:rc-zip-sync"]
 
 [dependencies]
+# Core dependencies
+thiserror = { workspace = true }
+path-clean = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
-tar = { workspace = true }
+
+# Optional format-specific dependencies
+tar = { workspace = true, optional = true }
+flate2 = { workspace = true, optional = true }
+liblzma = { workspace = true, optional = true }
+bzip2-rs = { workspace = true, optional = true }
+zstd = { workspace = true, optional = true }
+ruzstd = { workspace = true, optional = true }
 zip = { workspace = true, optional = true }
-flate2 = { workspace = true }
-lzma-rs = { workspace = true, optional = true }
-ruzstd = { workspace = true }
-bzip2-rs = { workspace = true }
-wasm-bindgen = { workspace = true, optional = true }
-path-clean = { workspace = true }
+time = { workspace = true, optional = true }
+
+# Alternative zip implementation (optional)
 rc-zip = { workspace = true, optional = true }
 rc-zip-sync = { workspace = true, optional = true }
-liblzma = { workspace = true, optional = true }
-time = { workspace = true }
-zstd = { workspace = true }
+
+# WASM support
+wasm-bindgen = { workspace = true, optional = true }

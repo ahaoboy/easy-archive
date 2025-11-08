@@ -1,11 +1,22 @@
-use easy_archive::{Fmt, human_size, mode_to_string};
+/// Command-line interface for easy-archive
+///
+/// This binary provides a simple CLI for compressing and decompressing archives.
+use easy_archive::{ArchiveError, File, Fmt, human_size};
 use path_clean::PathClean;
-use std::fs::{self};
+use std::fs;
 use std::io;
 use std::path::Path;
+use std::process;
 
-// Function to collect files and directories recursively, skipping symlinks
-fn collect_files(input_path: &Path) -> io::Result<Vec<easy_archive::File>> {
+/// Collect files and directories recursively, skipping symlinks
+///
+/// # Arguments
+/// * `input_path` - The path to collect files from
+///
+/// # Returns
+/// * `Ok(Vec<File>)` - List of collected files
+/// * `Err(io::Error)` - If file system operations fail
+fn collect_files(input_path: &Path) -> io::Result<Vec<File>> {
     let mut files = Vec::new();
     let input_path = input_path.clean();
 
@@ -16,7 +27,7 @@ fn collect_files(input_path: &Path) -> io::Result<Vec<easy_archive::File>> {
             .file_name()
             .map(|name| name.to_string_lossy().to_string())
             .unwrap_or_default();
-        files.push(easy_archive::File {
+        files.push(File {
             path: file_name,
             buffer,
             is_dir: false,
@@ -34,11 +45,16 @@ fn collect_files(input_path: &Path) -> io::Result<Vec<easy_archive::File>> {
     Ok(files)
 }
 
-// Recursive helper function to collect files and directories
+/// Recursive helper function to collect files and directories
+///
+/// # Arguments
+/// * `base_path` - The base path for calculating relative paths
+/// * `current_path` - The current directory being processed
+/// * `files` - Mutable vector to accumulate files
 fn collect_files_recursive(
     base_path: &Path,
     current_path: &Path,
-    files: &mut Vec<easy_archive::File>,
+    files: &mut Vec<File>,
 ) -> io::Result<()> {
     for entry in fs::read_dir(current_path)? {
         let entry = entry?;
@@ -55,7 +71,7 @@ fn collect_files_recursive(
             .unwrap_or_else(|_| path.to_string_lossy().to_string());
 
         if path.is_dir() {
-            files.push(easy_archive::File {
+            files.push(File {
                 path: rel_path.clone(),
                 buffer: vec![],
                 is_dir: true,
@@ -66,7 +82,7 @@ fn collect_files_recursive(
             collect_files_recursive(base_path, &path, files)?;
         } else if path.is_file() {
             let buffer = fs::read(&path)?;
-            files.push(easy_archive::File {
+            files.push(File {
                 path: rel_path,
                 buffer,
                 is_dir: false,
@@ -78,15 +94,41 @@ fn collect_files_recursive(
     Ok(())
 }
 
+/// Display user-friendly error message
+fn display_error(error: &ArchiveError) {
+    eprintln!("Error: {}", error);
+
+    // Provide additional context for specific error types
+    match error {
+        ArchiveError::DuplicateFiles { paths } => {
+            eprintln!("\nDuplicate file paths detected:");
+            for path in paths {
+                eprintln!("  - {}", path);
+            }
+            eprintln!("\nPlease ensure all file paths are unique.");
+        }
+        ArchiveError::UnsupportedFormat(fmt) => {
+            eprintln!("\nThe format '{}' is not supported or not enabled.", fmt);
+            eprintln!("Check that the corresponding feature flag is enabled.");
+        }
+        _ => {}
+    }
+}
+
 fn main() {
     let mut args = std::env::args().skip(1);
     let input = args.next();
     let output = args.next();
 
     if input.is_none() || output.is_none() {
-        println!("usage:\nea <input> <output>");
-        println!("input and output parameters are required");
-        return;
+        println!("Usage: ea <input> <output>");
+        println!("\nExamples:");
+        println!("  ea archive.tar.gz output_dir/    # Decompress");
+        println!("  ea input_dir/ archive.tar.gz     # Compress");
+        println!("\nSupported formats:");
+        println!("  .tar, .tar.gz, .tgz, .tar.xz, .txz,");
+        println!("  .tar.bz2, .tbz2, .tar.zst, .tzst, .zip");
+        process::exit(1);
     }
 
     let input = input.unwrap();
@@ -100,64 +142,125 @@ fn main() {
     match (input_fmt, output_fmt) {
         (Some(fmt), None) => {
             // Decompression
-            let buffer = std::fs::read(&input).expect("failed to read input file");
-            let files = fmt.decode(buffer).expect("failed to decode");
-            let mut info_list = vec![];
+            let buffer = match fs::read(&input) {
+                Ok(buf) => buf,
+                Err(e) => {
+                    eprintln!("Error: Failed to read input file '{}': {}", input, e);
+                    process::exit(1);
+                }
+            };
+
+            let files = match fmt.decode(buffer) {
+                Ok(f) => f,
+                Err(e) => {
+                    display_error(&e);
+                    process::exit(1);
+                }
+            };
+
             let mut total_size = 0;
             let file_count = files.len();
+
             for file in &files {
-                let size = file.buffer.len();
-                info_list.push((
-                    mode_to_string(file.mode.unwrap_or(0), file.is_dir),
-                    human_size(size),
-                    &file.path,
-                ));
-                total_size += size;
+                total_size += file.buffer.len();
             }
+
             println!("{} of {} files", human_size(total_size), file_count);
-            println!("decompress to {output}");
+            println!("Decompressing to {}", output);
+
             for file in &files {
                 let output_path = Path::new(&output).clean();
                 let output_path = output_path.join(&file.path).clean();
-                let dir = output_path.parent().expect("failed to get parent dir");
-                if !dir.exists() {
-                    std::fs::create_dir_all(dir).expect("failed to create dir");
-                }
-                if file.is_dir && !output_path.exists() {
-                    std::fs::create_dir_all(&output_path).expect("failed to create dir");
+                let dir = output_path
+                    .parent()
+                    .expect("Failed to get parent directory");
+
+                if !dir.exists()
+                    && let Err(e) = fs::create_dir_all(dir)
+                {
+                    eprintln!(
+                        "Error: Failed to create directory '{}': {}",
+                        dir.display(),
+                        e
+                    );
+                    process::exit(1);
                 }
 
-                let buffer = &file.buffer;
-                if !file.is_dir {
-                    std::fs::write(&output_path, buffer).expect("failed to write file");
+                if file.is_dir
+                    && !output_path.exists()
+                    && let Err(e) = fs::create_dir_all(&output_path)
+                {
+                    eprintln!(
+                        "Error: Failed to create directory '{}': {}",
+                        output_path.display(),
+                        e
+                    );
+                    process::exit(1);
                 }
 
+                if !file.is_dir
+                    && let Err(e) = fs::write(&output_path, &file.buffer)
+                {
+                    eprintln!(
+                        "Error: Failed to write file '{}': {}",
+                        output_path.display(),
+                        e
+                    );
+                    process::exit(1);
+                }
+
+                // Set permissions on Unix systems
                 #[cfg(not(windows))]
                 if let Some(mode) = file.mode {
-                    std::fs::set_permissions(
-                        &output_path,
-                        std::os::unix::fs::PermissionsExt::from_mode(mode),
-                    )
-                    .expect("failed to set permissions");
+                    use std::os::unix::fs::PermissionsExt;
+                    if let Err(e) =
+                        fs::set_permissions(&output_path, fs::Permissions::from_mode(mode))
+                    {
+                        eprintln!(
+                            "Warning: Failed to set permissions for '{}': {}",
+                            output_path.display(),
+                            e
+                        );
+                    }
                 }
-
             }
+
+            println!("Decompression complete!");
         }
         (None, Some(fmt)) => {
             // Compression
             let input_path = Path::new(&input).clean();
             if !input_path.exists() {
-                println!("input file or directory does not exist");
-                return;
+                eprintln!("Error: Input file or directory '{}' does not exist", input);
+                process::exit(1);
             }
 
-            let files = collect_files(&input_path).expect("failed to collect files");
+            let files = match collect_files(&input_path) {
+                Ok(f) => f,
+                Err(e) => {
+                    eprintln!("Error: Failed to collect files: {}", e);
+                    process::exit(1);
+                }
+            };
+
             let total_size: usize = files.iter().map(|f| f.buffer.len()).sum();
             let file_count = files.len();
-            let buffer = fmt.encode(files).expect("failed to encode files");
-            std::fs::write(&output, &buffer).expect("failed to write archive");
+
+            let buffer = match fmt.encode(files) {
+                Ok(b) => b,
+                Err(e) => {
+                    display_error(&e);
+                    process::exit(1);
+                }
+            };
+
+            if let Err(e) = fs::write(&output, &buffer) {
+                eprintln!("Error: Failed to write archive '{}': {}", output, e);
+                process::exit(1);
+            }
+
             println!(
-                "compressed {} files({}) to {}({})",
+                "Compressed {} files ({}) to {} ({})",
                 file_count,
                 human_size(total_size),
                 output,
@@ -165,12 +268,17 @@ fn main() {
             );
         }
         (Some(_), Some(_)) => {
-            println!("both input and output are archive formats, please choose one as a directory");
+            eprintln!("Error: Both input and output are archive formats.");
+            eprintln!("Please specify one as a directory for compression/decompression.");
+            process::exit(1);
         }
         (None, None) => {
-            println!(
-                "cannot identify input and output formats, at least one must be an archive format"
-            );
+            eprintln!("Error: Cannot identify input and output formats.");
+            eprintln!("At least one must be a recognized archive format.");
+            eprintln!("\nSupported formats:");
+            eprintln!("  .tar, .tar.gz, .tgz, .tar.xz, .txz,");
+            eprintln!("  .tar.bz2, .tbz2, .tar.zst, .tzst, .zip");
+            process::exit(1);
         }
     }
 }
