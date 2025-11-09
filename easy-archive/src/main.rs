@@ -185,6 +185,7 @@ fn handle_decompression(input: &str, output: &str, fmt: Fmt) {
         }
 
         if !file.is_dir
+            && !file.buffer.is_empty()
             && let Err(e) = fs::write(&output_path, &file.buffer)
         {
             eprintln!(
