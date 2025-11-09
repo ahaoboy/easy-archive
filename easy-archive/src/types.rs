@@ -17,7 +17,10 @@ use crate::archive::tar::TarZstd;
 #[cfg(feature = "zip")]
 use crate::archive::zip::Zip;
 
-use crate::traits::{Decode, Encode};
+#[cfg(feature = "decode")]
+use crate::traits::Decode;
+#[cfg(feature = "encode")]
+use crate::traits::Encode;
 
 /// Archive format enumeration
 ///
@@ -63,6 +66,7 @@ impl Fmt {
     /// let files = Fmt::TarGz.decode(data)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
+    #[cfg(feature = "decode")]
     pub fn decode(&self, buffer: Vec<u8>) -> Result<Vec<File>> {
         match self {
             #[cfg(feature = "zip")]
@@ -103,6 +107,7 @@ impl Fmt {
     /// std::fs::write("archive.tar.gz", archive)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
+    #[cfg(feature = "encode")]
     pub fn encode(&self, files: Vec<File>) -> Result<Vec<u8>> {
         match self {
             #[cfg(feature = "zip")]

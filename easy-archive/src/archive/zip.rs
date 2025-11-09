@@ -4,20 +4,36 @@
 use crate::{
     File,
     error::{ArchiveError, Result},
-    traits::{Decode, Encode},
-    utils::{check_duplicate_files, clean},
 };
 
-use std::collections::HashSet;
-use std::io::{Cursor, Read, Seek, SeekFrom, Write};
+#[cfg(feature = "decode")]
+use crate::utils::clean;
 
+#[cfg(feature = "decode")]
+use crate::traits::Decode;
+
+#[cfg(feature = "encode")]
+use crate::traits::Encode;
+
+#[cfg(feature = "encode")]
+use crate::utils::check_duplicate_files;
+
+#[cfg(feature = "encode")]
+use std::collections::HashSet;
+
+use std::io::{Cursor, Write};
+
+#[cfg(feature = "decode")]
+use std::io::{Read, Seek, SeekFrom};
+
+#[cfg(feature = "encode")]
 use zip::DateTime;
 
-use time::OffsetDateTime;
-
+#[cfg(feature = "zip")]
 /// ZIP archive format handler
 pub struct Zip;
 
+#[cfg(all(feature = "zip", feature = "decode"))]
 impl Decode for Zip {
     fn decode<T: AsRef<[u8]>>(buffer: T) -> Result<Vec<File>> {
         let buffer = buffer.as_ref();
@@ -70,7 +86,7 @@ impl Decode for Zip {
             let path = clean(&path);
             let last_modified = file
                 .last_modified()
-                .and_then(|dt| OffsetDateTime::try_from(dt).ok())
+                .and_then(|dt| time::OffsetDateTime::try_from(dt).ok())
                 .map(|dt| dt.unix_timestamp() as u64);
 
             files.push(File::new(path, buffer, None, is_dir, last_modified));
@@ -80,6 +96,7 @@ impl Decode for Zip {
     }
 }
 
+#[cfg(all(feature = "zip", feature = "encode"))]
 impl Encode for Zip {
     fn encode(files: Vec<File>) -> Result<Vec<u8>> {
         // Check for duplicate files before encoding (fail fast)
@@ -101,7 +118,7 @@ impl Encode for Zip {
                 .compression_method(zip::CompressionMethod::Zstd);
 
             if let Some(timestamp) = last_modified
-                && let Ok(offset_time) = OffsetDateTime::from_unix_timestamp(timestamp as i64)
+                && let Ok(offset_time) = time::OffsetDateTime::from_unix_timestamp(timestamp as i64)
                 && let Ok(datetime) = DateTime::try_from(offset_time)
             {
                 options = options.last_modified_time(datetime);

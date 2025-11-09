@@ -44,9 +44,20 @@ pub mod utils;
 
 // Re-export commonly used types and functions
 pub use error::{ArchiveError, Result};
-pub use traits::{Archive, Decode, Encode};
 pub use types::{File, Fmt};
-pub use utils::{check_duplicate_files, clean, human_size, mode_to_string};
+pub use utils::{clean, human_size, mode_to_string};
+
+#[cfg(feature = "decode")]
+pub use traits::Decode;
+
+#[cfg(feature = "encode")]
+pub use traits::Encode;
+
+#[cfg(feature = "encode")]
+pub use utils::check_duplicate_files;
+
+#[cfg(all(feature = "encode", feature = "decode"))]
+pub use traits::Archive;
 
 #[cfg(test)]
 mod test {

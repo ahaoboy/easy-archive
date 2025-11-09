@@ -4,6 +4,9 @@ use crate::{File, error::Result};
 /// Trait for decoding archives from bytes
 ///
 /// Implementors of this trait can decode archive data into a list of files.
+///
+/// This trait is only available when the `decode` feature is enabled.
+#[cfg(feature = "decode")]
 pub trait Decode {
     /// Decode an archive from a byte buffer
     ///
@@ -28,6 +31,9 @@ pub trait Decode {
 /// Trait for encoding files into archives
 ///
 /// Implementors of this trait can encode a list of files into archive format.
+///
+/// This trait is only available when the `encode` feature is enabled.
+#[cfg(feature = "encode")]
 pub trait Encode {
     /// Encode files into an archive
     ///
@@ -58,4 +64,6 @@ pub trait Encode {
 /// Combined trait for types that support both encoding and decoding
 ///
 /// This is a marker trait that indicates a type can both encode and decode archives.
+/// Only available when both `encode` and `decode` features are enabled.
+#[cfg(all(feature = "encode", feature = "decode"))]
 pub trait Archive: Encode + Decode {}

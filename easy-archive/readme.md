@@ -6,6 +6,7 @@ A cross-platform Rust library and CLI tool for working with various archive form
 
 - 🗜️ **Multiple Formats**: TAR, TAR.GZ, TAR.XZ, TAR.BZ2, TAR.ZSTD, ZIP
 - 🎯 **Modular**: Enable only the formats you need via Cargo features
+- ⚡ **Operation-Specific**: Separate `encode` and `decode` features for minimal binaries
 - 🚀 **Performance**: Optimized with buffered I/O and efficient compression
 - 🔒 **Type-Safe**: Comprehensive error handling with structured error types
 - 🌐 **Cross-Platform**: Works on Windows, macOS, and Linux
@@ -116,7 +117,20 @@ ea input_dir/ archive.tar.gz
 
 ## Feature Flags
 
-The library uses Cargo features to enable/disable format support:
+The library uses Cargo features to enable/disable format support and operations:
+
+### Operation Features
+
+- `encode` - Enable archive creation (encoding)
+- `decode` - Enable archive extraction (decoding)
+- `default` - Enables both `encode` and `decode` with all formats
+
+**Usage Pattern**: Combine operation features with format features to enable specific functionality.
+- Use `["encode", "tar-xz"]` to enable only TAR.XZ encoding
+- Use `["decode", "zip"]` to enable only ZIP decoding
+- Use `["encode", "decode", "tar-gz"]` to enable both operations for TAR.GZ
+
+### Format Features
 
 - `tar` - Plain TAR format
 - `tar-gz` - Gzip-compressed TAR (requires `tar`)
@@ -124,22 +138,49 @@ The library uses Cargo features to enable/disable format support:
 - `tar-bz` - Bzip2-compressed TAR (requires `tar`)
 - `tar-zstd` - Zstd-compressed TAR (requires `tar`)
 - `zip` - ZIP format
-- `default` - Enables all formats above
-- `cli` - Enables CLI binary (includes all formats)
+
+### Other Features
+
+- `cli` - Enables CLI binary (includes all formats and operations)
 - `wasm` - WebAssembly support
+- `rc-zip` - Alternative ZIP implementation (optional)
 
 ### Examples
 
-Only ZIP support:
+**Only ZIP decoding** (smallest binary for extraction-only use case):
 
 ```toml
-easy-archive = { version = "0.2", default-features = false, features = ["zip"] }
+easy-archive = { version = "0.2", default-features = false, features = ["decode", "zip"] }
 ```
 
-TAR with Gzip and Zstd:
+**Only TAR.GZ encoding** (for creating archives only):
 
 ```toml
-easy-archive = { version = "0.2", default-features = false, features = ["tar", "tar-gz", "tar-zstd"] }
+easy-archive = { version = "0.2", default-features = false, features = ["encode", "tar-gz"] }
+```
+
+**Only TAR.XZ decoding** (specific format extraction):
+
+```toml
+easy-archive = { version = "0.2", default-features = false, features = ["decode", "tar-xz"] }
+```
+
+**Multiple formats with decode only**:
+
+```toml
+easy-archive = { version = "0.2", default-features = false, features = ["decode", "tar-gz", "zip"] }
+```
+
+**TAR with Gzip and Zstd** (both encode and decode):
+
+```toml
+easy-archive = { version = "0.2", default-features = false, features = ["encode", "decode", "tar-gz", "tar-zstd"] }
+```
+
+**All formats, decode only**:
+
+```toml
+easy-archive = { version = "0.2", default-features = false, features = ["decode", "tar", "tar-gz", "tar-xz", "tar-bz", "tar-zstd", "zip"] }
 ```
 
 ## API Documentation
@@ -303,6 +344,40 @@ let files = Fmt::TarGz.decode(data)?;
 let zip_data = Fmt::Zip.encode(files)?;
 std::fs::write("output.zip", zip_data)?;
 ```
+
+## Binary Size Optimization
+
+The library is designed to minimize binary size through granular feature flags:
+
+### Size Comparison Examples
+
+| Configuration | Approximate Binary Size | Use Case |
+|--------------|------------------------|----------|
+| `default` | ~2-3 MB | Full functionality |
+| `["decode", "zip"]` | ~500 KB | ZIP extraction only |
+| `["encode", "tar-gz"]` | ~400 KB | TAR.GZ creation only |
+| `["decode", "tar-xz"]` | ~600 KB | TAR.XZ extraction only |
+| `["encode", "decode", "zip"]` | ~800 KB | ZIP only (both operations) |
+
+### Optimization Strategies
+
+1. **Enable only needed operations**: Use `encode` OR `decode`, not both
+2. **Select specific formats**: Don't enable all formats if you only need one
+3. **Combine wisely**: `["decode", "tar-gz"]` is much smaller than `["default"]`
+
+### Example: Minimal Extraction Tool
+
+For a tool that only extracts ZIP files:
+
+```toml
+[dependencies]
+easy-archive = { version = "0.2", default-features = false, features = ["decode", "zip"] }
+```
+
+This removes:
+- All encoding logic
+- All other format support (TAR, XZ, BZ2, ZSTD)
+- Unused compression libraries
 
 ## Performance Tips
 

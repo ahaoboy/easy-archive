@@ -8,15 +8,31 @@ repository = { workspace = true }
 authors = { workspace = true }
 
 [[bin]]
-path="src/main.rs"
+path = "src/main.rs"
 name = "easy-archive"
 
 [features]
-default = ["tar", "tar-gz", "tar-xz", "tar-bz", "tar-zstd", "zip"]
+# Default: all formats with both encode and decode
+default = [
+  "tar",
+  "tar-gz",
+  "tar-xz",
+  "tar-bz",
+  "tar-zstd",
+  "zip",
+  "encode",
+  "decode",
+]
 cli = ["default"]
 wasm = ["wasm-bindgen", "default"]
 
-# Format features
+# Operation features
+# When used alone, they enable all formats
+# When combined with specific formats (e.g., ["encode", "tar-xz"]), only those formats are enabled
+encode = []
+decode = []
+
+# Format features (base dependencies)
 tar = ["dep:tar"]
 tar-gz = ["tar", "dep:flate2"]
 tar-xz = ["tar", "dep:liblzma"]

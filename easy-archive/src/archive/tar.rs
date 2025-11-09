@@ -7,12 +7,28 @@
 /// - Bzip2-compressed TAR (.tar.bz2, .tbz2)
 /// - Zstd-compressed TAR (.tar.zst, .tzst, .tzstd)
 use crate::{
-    File, Fmt,
+    File,
     error::{ArchiveError, Result},
-    traits::{Decode, Encode},
-    utils::{check_duplicate_files, clean},
 };
-use std::io::{BufReader, Cursor, Read};
+
+#[cfg(feature = "decode")]
+use crate::utils::clean;
+
+#[cfg(feature = "decode")]
+use crate::traits::Decode;
+
+#[cfg(feature = "encode")]
+use crate::traits::Encode;
+
+#[cfg(feature = "encode")]
+use crate::{Fmt, utils::check_duplicate_files};
+
+use std::io::Cursor;
+
+#[cfg(feature = "decode")]
+use std::io::{BufReader, Read};
+
+#[cfg(feature = "decode")]
 use tar::Archive;
 
 /// Common helper function for decoding TAR archives
@@ -31,6 +47,7 @@ use tar::Archive;
 /// # Returns
 /// * `Ok(Vec<File>)` - The extracted files
 /// * `Err(ArchiveError)` - If decoding fails
+#[cfg(feature = "decode")]
 fn decode_tar_archive<R: Read>(reader: R) -> Result<Vec<File>> {
     // Pre-allocate with estimated capacity (typical archives have 10-100 files)
     let mut files = Vec::with_capacity(32);
@@ -79,7 +96,7 @@ fn decode_tar_archive<R: Read>(reader: R) -> Result<Vec<File>> {
 
 /// Common helper function for encoding TAR archives
 ///
-/// This function handles the core TAR encoding logic that is shared across
+/// This function handles the core TAR decoding logic that is shared across
 /// all TAR format variants. It includes duplicate file detection.
 ///
 /// # Performance Notes
@@ -93,6 +110,7 @@ fn decode_tar_archive<R: Read>(reader: R) -> Result<Vec<File>> {
 /// # Returns
 /// * `Ok(Vec<u8>)` - The encoded TAR data
 /// * `Err(ArchiveError)` - If encoding fails or duplicates are detected
+#[cfg(feature = "encode")]
 fn encode_tar_archive(files: Vec<File>) -> Result<Vec<u8>> {
     // Check for duplicate files before encoding (fail fast)
     check_duplicate_files(&files)?;
@@ -133,9 +151,11 @@ fn encode_tar_archive(files: Vec<File>) -> Result<Vec<u8>> {
 // Plain TAR format
 // ============================================================================
 
+#[cfg(feature = "tar")]
 /// Plain TAR archive format handler
 pub struct Tar;
 
+#[cfg(all(feature = "tar", feature = "decode"))]
 impl Decode for Tar {
     fn decode<T: AsRef<[u8]>>(buffer: T) -> Result<Vec<File>> {
         let cur = Cursor::new(buffer);
@@ -143,6 +163,7 @@ impl Decode for Tar {
     }
 }
 
+#[cfg(all(feature = "tar", feature = "encode"))]
 impl Encode for Tar {
     fn encode(files: Vec<File>) -> Result<Vec<u8>> {
         encode_tar_archive(files)
@@ -153,14 +174,16 @@ impl Encode for Tar {
 // Gzip-compressed TAR format
 // ============================================================================
 
-#[cfg(feature = "tar-gz")]
-use flate2::{Compression, bufread::GzEncoder, read::GzDecoder};
+#[cfg(all(feature = "tar-gz", feature = "decode"))]
+use flate2::read::GzDecoder;
+#[cfg(feature = "encode")]
+use flate2::{Compression, bufread::GzEncoder};
 
 #[cfg(feature = "tar-gz")]
 /// Gzip-compressed TAR archive format handler
 pub struct TarGz;
 
-#[cfg(feature = "tar-gz")]
+#[cfg(all(feature = "tar-gz", feature = "decode"))]
 impl Decode for TarGz {
     fn decode<T: AsRef<[u8]>>(buffer: T) -> Result<Vec<File>> {
         let buffer = buffer.as_ref();
@@ -183,9 +206,10 @@ impl Decode for TarGz {
     }
 }
 
-#[cfg(feature = "tar-gz")]
+#[cfg(all(feature = "tar-gz", feature = "encode"))]
 impl Encode for TarGz {
     fn encode(files: Vec<File>) -> Result<Vec<u8>> {
+        use std::io::Read;
         let tar = Fmt::Tar.encode(files)?;
 
         // Pre-allocate compressed buffer (estimate 30-40% of original size)
@@ -209,16 +233,17 @@ impl Encode for TarGz {
 // XZ-compressed TAR format
 // ============================================================================
 
-#[cfg(feature = "tar-xz")]
+#[cfg(all(feature = "tar-xz", feature = "decode"))]
 use liblzma::bufread::XzDecoder;
-#[cfg(feature = "tar-xz")]
+#[cfg(all(feature = "tar-xz", feature = "encode"))]
 use liblzma::write::XzEncoder;
 
 #[cfg(feature = "tar-xz")]
 /// XZ-compressed TAR archive format handler
 pub struct TarXz;
 
-#[cfg(feature = "tar-xz")]
+#[cfg(feature = "decode")]
+#[cfg(all(feature = "tar-xz", feature = "decode"))]
 impl Decode for TarXz {
     fn decode<T: AsRef<[u8]>>(buffer: T) -> Result<Vec<File>> {
         let buffer = buffer.as_ref();
@@ -236,7 +261,7 @@ impl Decode for TarXz {
     }
 }
 
-#[cfg(feature = "tar-xz")]
+#[cfg(all(feature = "tar-xz", feature = "encode"))]
 impl Encode for TarXz {
     fn encode(files: Vec<File>) -> Result<Vec<u8>> {
         let tar = Fmt::Tar.encode(files)?;
@@ -262,14 +287,15 @@ impl Encode for TarXz {
 // Bzip2-compressed TAR format
 // ============================================================================
 
-#[cfg(feature = "tar-bz")]
+#[cfg(all(feature = "tar-bz", feature = "decode"))]
 use bzip2_rs::DecoderReader;
 
 #[cfg(feature = "tar-bz")]
 /// Bzip2-compressed TAR archive format handler
 pub struct TarBz;
 
-#[cfg(feature = "tar-bz")]
+#[cfg(feature = "decode")]
+#[cfg(all(feature = "tar-bz", feature = "decode"))]
 impl Decode for TarBz {
     fn decode<T: AsRef<[u8]>>(buffer: T) -> Result<Vec<File>> {
         let cur = Cursor::new(buffer);
@@ -289,8 +315,7 @@ impl Decode for TarBz {
         })
     }
 }
-
-#[cfg(feature = "tar-bz")]
+#[cfg(all(feature = "tar-bz", feature = "encode"))]
 impl Encode for TarBz {
     fn encode(_files: Vec<File>) -> Result<Vec<u8>> {
         // The bzip2-rs library does not provide an encoder API
@@ -304,14 +329,14 @@ impl Encode for TarBz {
 // Zstd-compressed TAR format
 // ============================================================================
 
-#[cfg(feature = "tar-zstd")]
+#[cfg(all(feature = "tar-zstd", feature = "decode"))]
 use ruzstd::decoding::StreamingDecoder;
 
 #[cfg(feature = "tar-zstd")]
 /// Zstd-compressed TAR archive format handler
 pub struct TarZstd;
-
-#[cfg(feature = "tar-zstd")]
+#[cfg(feature = "decode")]
+#[cfg(all(feature = "tar-zstd", feature = "decode"))]
 impl Decode for TarZstd {
     fn decode<T: AsRef<[u8]>>(buffer: T) -> Result<Vec<File>> {
         let cur = Cursor::new(buffer);
@@ -331,7 +356,7 @@ impl Decode for TarZstd {
     }
 }
 
-#[cfg(feature = "tar-zstd")]
+#[cfg(all(feature = "tar-zstd", feature = "encode"))]
 impl Encode for TarZstd {
     fn encode(files: Vec<File>) -> Result<Vec<u8>> {
         let tar = Fmt::Tar.encode(files)?;
