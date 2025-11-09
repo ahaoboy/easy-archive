@@ -1,102 +1,17 @@
-/// ZIP archive format implementation
-///
-/// This module provides support for ZIP archives with various compression methods.
+/// ZIP encoding implementation
 use crate::{
     File,
     error::{ArchiveError, Result},
+    traits::Encode,
+    utils::check_duplicate_files,
 };
-
-#[cfg(feature = "decode")]
-use crate::utils::clean;
-
-#[cfg(feature = "decode")]
-use crate::traits::Decode;
-
-#[cfg(feature = "encode")]
-use crate::traits::Encode;
-
-#[cfg(feature = "encode")]
-use crate::utils::check_duplicate_files;
-
-#[cfg(feature = "encode")]
 use std::collections::HashSet;
-
 use std::io::{Cursor, Write};
-
-#[cfg(feature = "decode")]
-use std::io::{Read, Seek, SeekFrom};
-
-#[cfg(feature = "encode")]
+use time::OffsetDateTime;
 use zip::DateTime;
 
-#[cfg(feature = "zip")]
-/// ZIP archive format handler
-pub struct Zip;
+use super::Zip;
 
-#[cfg(all(feature = "zip", feature = "decode"))]
-impl Decode for Zip {
-    fn decode<T: AsRef<[u8]>>(buffer: T) -> Result<Vec<File>> {
-        let buffer = buffer.as_ref();
-
-        // Pre-allocate cursor buffer to avoid reallocation
-        let mut cursor = Cursor::new(Vec::with_capacity(buffer.len()));
-
-        cursor
-            .write_all(buffer)
-            .map_err(|e| ArchiveError::DecodeFailed {
-                format: "zip".to_string(),
-                reason: format!("Failed to write buffer: {}", e),
-            })?;
-
-        cursor
-            .seek(SeekFrom::Start(0))
-            .map_err(|e| ArchiveError::DecodeFailed {
-                format: "zip".to_string(),
-                reason: format!("Failed to seek: {}", e),
-            })?;
-
-        // Pre-allocate files vector (typical zip has 10-100 files)
-        let mut files = Vec::with_capacity(32);
-        let mut archive = zip::ZipArchive::new(cursor).map_err(|e| ArchiveError::DecodeFailed {
-            format: "zip".to_string(),
-            reason: format!("Failed to open zip archive: {}", e),
-        })?;
-
-        for i in 0..archive.len() {
-            let mut file = archive
-                .by_index(i)
-                .map_err(|e| ArchiveError::DecodeFailed {
-                    format: "zip".to_string(),
-                    reason: format!("Failed to read entry {}: {}", i, e),
-                })?;
-
-            let path = file.name().to_string();
-            let is_dir = file.is_dir() || path.ends_with("/");
-
-            // Read file content (empty for directories)
-            let mut buffer = Vec::new();
-            if file.is_file() {
-                file.read_to_end(&mut buffer)
-                    .map_err(|e| ArchiveError::DecodeFailed {
-                        format: "zip".to_string(),
-                        reason: format!("Failed to read file '{}': {}", path, e),
-                    })?;
-            }
-
-            let path = clean(&path);
-            let last_modified = file
-                .last_modified()
-                .and_then(|dt| time::OffsetDateTime::try_from(dt).ok())
-                .map(|dt| dt.unix_timestamp() as u64);
-
-            files.push(File::new(path, buffer, None, is_dir, last_modified));
-        }
-
-        Ok(files)
-    }
-}
-
-#[cfg(all(feature = "zip", feature = "encode"))]
 impl Encode for Zip {
     fn encode(files: Vec<File>) -> Result<Vec<u8>> {
         // Check for duplicate files before encoding (fail fast)
@@ -118,7 +33,7 @@ impl Encode for Zip {
                 .compression_method(zip::CompressionMethod::Zstd);
 
             if let Some(timestamp) = last_modified
-                && let Ok(offset_time) = time::OffsetDateTime::from_unix_timestamp(timestamp as i64)
+                && let Ok(offset_time) = OffsetDateTime::from_unix_timestamp(timestamp as i64)
                 && let Ok(datetime) = DateTime::try_from(offset_time)
             {
                 options = options.last_modified_time(datetime);

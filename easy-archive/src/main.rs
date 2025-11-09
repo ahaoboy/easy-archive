@@ -162,34 +162,38 @@ fn handle_decompression(input: &str, output: &str, fmt: Fmt) {
             .expect("Failed to get parent directory");
 
         if !dir.exists()
-            && let Err(e) = fs::create_dir_all(dir) {
-                eprintln!(
-                    "Error: Failed to create directory '{}': {}",
-                    dir.display(),
-                    e
-                );
-                process::exit(1);
-            }
+            && let Err(e) = fs::create_dir_all(dir)
+        {
+            eprintln!(
+                "Error: Failed to create directory '{}': {}",
+                dir.display(),
+                e
+            );
+            process::exit(1);
+        }
 
-        if file.is_dir && !output_path.exists()
-            && let Err(e) = fs::create_dir_all(&output_path) {
-                eprintln!(
-                    "Error: Failed to create directory '{}': {}",
-                    output_path.display(),
-                    e
-                );
-                process::exit(1);
-            }
+        if file.is_dir
+            && !output_path.exists()
+            && let Err(e) = fs::create_dir_all(&output_path)
+        {
+            eprintln!(
+                "Error: Failed to create directory '{}': {}",
+                output_path.display(),
+                e
+            );
+            process::exit(1);
+        }
 
         if !file.is_dir
-            && let Err(e) = fs::write(&output_path, &file.buffer) {
-                eprintln!(
-                    "Error: Failed to write file '{}': {}",
-                    output_path.display(),
-                    e
-                );
-                process::exit(1);
-            }
+            && let Err(e) = fs::write(&output_path, &file.buffer)
+        {
+            eprintln!(
+                "Error: Failed to write file '{}': {}",
+                output_path.display(),
+                e
+            );
+            process::exit(1);
+        }
 
         // Set permissions on Unix systems
         #[cfg(not(windows))]

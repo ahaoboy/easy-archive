@@ -5,17 +5,17 @@ use strum_macros::EnumIter;
 use crate::error::Result;
 
 #[cfg(feature = "tar")]
-use crate::archive::tar::Tar;
+use crate::archive::Tar;
 #[cfg(feature = "tar-bz")]
-use crate::archive::tar::TarBz;
+use crate::archive::TarBz;
 #[cfg(feature = "tar-gz")]
-use crate::archive::tar::TarGz;
+use crate::archive::TarGz;
 #[cfg(feature = "tar-xz")]
-use crate::archive::tar::TarXz;
+use crate::archive::TarXz;
 #[cfg(feature = "tar-zstd")]
-use crate::archive::tar::TarZstd;
+use crate::archive::TarZstd;
 #[cfg(feature = "zip")]
-use crate::archive::zip::Zip;
+use crate::archive::Zip;
 
 #[cfg(feature = "decode")]
 use crate::traits::Decode;
