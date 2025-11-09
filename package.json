@@ -26,10 +26,10 @@
     "url": "git+https://github.com/ahaoboy/easy-archive.git"
   },
   "devDependencies": {
-    "@types/node": "24.2.1",
-    "esbuild": "0.25.9",
-    "typescript": "5.9.2",
-    "vitest": "3.2.4",
+    "@types/node": "24.10.0",
+    "esbuild": "0.26.0",
+    "typescript": "5.9.3",
+    "vitest": "4.0.8",
     "wasm-pack-inline": "0.1.4"
   },
   "pnpm": {

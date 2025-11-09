@@ -28,8 +28,6 @@ export function randomId() {
   return Math.random().toString(36).slice(2);
 }
 
-const free = () => {};
-
 export function createFiles(dir: string): File[] {
   const files: File[] = [];
   async function dfs(currentPath: string) {
@@ -49,7 +47,6 @@ export function createFiles(dir: string): File[] {
           mode: stat.mode,
           isDir: false,
           lastModified: BigInt(+stat.mtime),
-          free,
           clone: () => {
             return file;
           },
@@ -157,7 +154,6 @@ export function extractToByWasm(
       buffer,
       mode,
       isDir,
-      free,
       lastModified,
       clone,
       bufferSize: buffer.length,
@@ -171,7 +167,9 @@ export function extractToByWasm(
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }
-    writeFileSync(outputPath, buffer);
+    if (buffer.length) {
+      writeFileSync(outputPath, buffer);
+    }
 
     if (mode && process.platform !== "win32") {
       chmodSync(outputPath, mode);
@@ -225,6 +223,8 @@ export async function downloadToFile(url: string, outputPath?: string) {
   }
   const response = await fetch(url, getFetchOption());
   const buf = await response.arrayBuffer();
-  writeFileSync(outputPath, Buffer.from(buf));
+  if (buf.byteLength) {
+    writeFileSync(outputPath, Buffer.from(buf));
+  }
   return outputPath;
 }

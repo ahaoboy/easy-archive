@@ -123,7 +123,7 @@ function main() {
         mkdirSync(outputPath, { recursive: true });
       }
 
-      if (!file.isDir) {
+      if (!file.isDir && file.buffer.length) {
         writeFileSync(outputPath, file.buffer);
       }
 

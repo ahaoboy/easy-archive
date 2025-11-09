@@ -8,9 +8,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 wasm-bindgen = { workspace = true }
-easy-archive = { path = "../easy-archive", features = [
-  "wasm",
-], default-features = false }
+easy-archive = { path = "../easy-archive", features = ["wasm"] }
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false
