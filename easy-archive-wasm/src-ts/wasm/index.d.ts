@@ -1,9 +1,9 @@
 /* tslint:disable */
 /* eslint-disable */
-export function decode(fmt: Fmt, buffer: Uint8Array): File[] | undefined;
-export function extensions(fmt: Fmt): string[];
-export function guess(name: string): Fmt | undefined;
 export function encode(fmt: Fmt, files: File[]): Uint8Array | undefined;
+export function decode(fmt: Fmt, buffer: Uint8Array): File[] | undefined;
+export function guess(name: string): Fmt | undefined;
+export function extensions(fmt: Fmt): string[];
 /**
  * Archive format enumeration
  *
