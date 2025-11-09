@@ -171,7 +171,7 @@ impl Fmt {
             #[cfg(feature = "tar-xz")]
             Fmt::TarXz => &[".tar.xz", ".txz"],
             #[cfg(feature = "tar-bz")]
-            Fmt::TarBz => &[".tar.bz2", ".tbz2"],
+            Fmt::TarBz => &[".tar.bz2", ".tbz2", ".tbz"],
             #[cfg(feature = "tar-zstd")]
             Fmt::TarZstd => &[".tzstd", ".tzst", ".tar.zst"],
             #[cfg(feature = "zip")]

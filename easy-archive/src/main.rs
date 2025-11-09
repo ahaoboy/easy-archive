@@ -274,7 +274,7 @@ fn print_usage() {
     #[cfg(feature = "tar-xz")]
     formats.extend(&[".tar.xz", ".txz"]);
     #[cfg(feature = "tar-bz")]
-    formats.extend(&[".tar.bz2", ".tbz2"]);
+    formats.extend(&[".tar.bz2", ".tbz2", ".tbz"]);
     #[cfg(feature = "tar-zstd")]
     formats.extend(&[".tar.zst", ".tzst"]);
     #[cfg(feature = "zip")]
