@@ -42,6 +42,7 @@ rc-zip-sync = { version = "4", features = [
 liblzma = "0.4"
 time = { version = "0.3", features = ["wasm-bindgen"] }
 zstd = "0.13"
+sevenz-rust2 = { version = "0.20" , features = ["default_wasm"]}
 
 # [profile.release]
 # debug = false

@@ -16,6 +16,8 @@ use crate::archive::TarXz;
 use crate::archive::TarZstd;
 #[cfg(feature = "zip")]
 use crate::archive::Zip;
+#[cfg(feature = "7z")]
+use crate::archive::seven_zip::SevenZip;
 
 #[cfg(feature = "decode")]
 use crate::traits::Decode;
@@ -47,6 +49,9 @@ pub enum Fmt {
     /// ZIP archive format
     #[cfg(feature = "zip")]
     Zip,
+    /// 7z archive format
+    #[cfg(feature = "7z")]
+    SevenZip,
 }
 
 impl Fmt {
@@ -81,6 +86,8 @@ impl Fmt {
             Fmt::TarBz => TarBz::decode(buffer),
             #[cfg(feature = "tar-zstd")]
             Fmt::TarZstd => TarZstd::decode(buffer),
+            #[cfg(feature = "7z")]
+            Fmt::SevenZip => SevenZip::decode(buffer),
         }
     }
 
@@ -122,6 +129,8 @@ impl Fmt {
             Fmt::TarBz => TarBz::encode(files),
             #[cfg(feature = "tar-zstd")]
             Fmt::TarZstd => TarZstd::encode(files),
+            #[cfg(feature = "7z")]
+            Fmt::SevenZip => SevenZip::encode(files),
         }
     }
 
@@ -176,6 +185,8 @@ impl Fmt {
             Fmt::TarZstd => &[".tzstd", ".tzst", ".tar.zst"],
             #[cfg(feature = "zip")]
             Fmt::Zip => &[".zip"],
+            #[cfg(feature = "7z")]
+            Fmt::SevenZip => &[".7z"],
         }
     }
 }

@@ -16,6 +16,9 @@ pub mod tar_zstd;
 #[cfg(feature = "zip")]
 pub mod zip;
 
+#[cfg(feature = "7z")]
+pub mod seven_zip;
+
 #[cfg(feature = "tar")]
 pub use tar::Tar;
 
@@ -33,3 +36,6 @@ pub use tar_zstd::TarZstd;
 
 #[cfg(feature = "zip")]
 pub use zip::Zip;
+
+#[cfg(feature = "7z")]
+pub use seven_zip::SevenZip;

@@ -41,6 +41,7 @@ const SupportFormat = [
   Fmt.TarXz,
   Fmt.TarZstd,
   Fmt.Zip,
+  Fmt.SevenZip,
 ].map((i) => extensions(i)).flat();
 
 export interface FileType {
@@ -110,8 +111,7 @@ const App: React.FC = () => {
       dataIndex: "mode",
       render: (_, { isDir, mode }) =>
         mode !== undefined
-          ? `(0o${mode.toString(8).padStart(3, "0")}) ${
-            modeToString(mode, isDir)
+          ? `(0o${mode.toString(8).padStart(3, "0")}) ${modeToString(mode, isDir)
           }`
           : "",
     },

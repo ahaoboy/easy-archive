@@ -22,6 +22,7 @@ default = [
   "zip",
   "encode",
   "decode",
+  "7z"
 ]
 cli = ["default"]
 wasm = ["wasm-bindgen", "default"]
@@ -39,6 +40,7 @@ tar-xz = ["tar", "dep:liblzma"]
 tar-bz = ["tar", "dep:bzip2-rs"]
 tar-zstd = ["tar", "dep:zstd", "dep:ruzstd"]
 zip = ["dep:zip", "dep:time"]
+7z = ["dep:sevenz-rust2"]
 
 # Alternative zip implementation (optional)
 rc-zip = ["dep:rc-zip", "dep:rc-zip-sync"]
@@ -64,5 +66,8 @@ time = { workspace = true, optional = true }
 rc-zip = { workspace = true, optional = true }
 rc-zip-sync = { workspace = true, optional = true }
 
+sevenz-rust2 = { workspace = true, optional = true }
+
 # WASM support
 wasm-bindgen = { workspace = true, optional = true }
+
