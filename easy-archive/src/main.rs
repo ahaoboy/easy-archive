@@ -12,7 +12,7 @@ use std::fs;
 #[cfg(feature = "encode")]
 use std::io;
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process;
 
 /// Collect files and directories recursively, skipping symlinks
@@ -255,15 +255,92 @@ fn handle_compression(input: &str, output: &str, fmt: Fmt) {
     );
 }
 
+fn get_available_path(base_path: &Path, is_directory: bool) -> String {
+    if !base_path.exists() {
+        return base_path.to_string_lossy().into_owned();
+    }
+
+    let mut i = 1;
+    let parent = base_path.parent().unwrap_or_else(|| Path::new(""));
+    let file_name = base_path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+    let ext = base_path.extension().and_then(|s| s.to_str()).unwrap_or("");
+    let orig_name = base_path.file_name().and_then(|s| s.to_str()).unwrap_or("");
+
+    loop {
+        let new_name = if is_directory || ext.is_empty() {
+            format!("{}({})", orig_name, i)
+        } else {
+            format!("{}({}).{}", file_name, i, ext)
+        };
+        
+        let new_path = parent.join(&new_name);
+        if !new_path.exists() {
+            return new_path.to_string_lossy().into_owned();
+        }
+        i += 1;
+    }
+}
+
+fn get_default_output(input: &str, input_fmt: Option<Fmt>) -> String {
+    let input_path = Path::new(input).clean();
+
+    if let Some(fmt) = input_fmt {
+        let mut dir_name = input_path.file_name()
+            .map(|s| s.to_string_lossy().into_owned())
+            .unwrap_or_else(|| "archive".to_string());
+
+        for ext in fmt.extensions() {
+            if dir_name.ends_with(ext) {
+                dir_name = dir_name[..dir_name.len() - ext.len()].to_string();
+                break;
+            }
+        }
+        
+        let mut base_output = input_path.parent().unwrap_or_else(|| Path::new("")).join(dir_name);
+        if base_output.as_os_str().is_empty() {
+            base_output = PathBuf::from("archive");
+        }
+
+        get_available_path(&base_output, true)
+    } else {
+        let parent = input_path.parent().unwrap_or_else(|| Path::new(""));
+        
+        let base_name = if input_path.is_dir() {
+            input_path.file_name()
+                .map(|s| s.to_string_lossy().into_owned())
+                .unwrap_or_else(|| "archive".to_string())
+        } else {
+            let stem = input_path.file_stem()
+                .map(|s| s.to_string_lossy().into_owned())
+                .unwrap_or_default();
+            
+            if stem.is_empty() || stem.starts_with('.') {
+                parent.file_name()
+                    .map(|s| s.to_string_lossy().into_owned())
+                    .unwrap_or_else(|| "archive".to_string())
+            } else {
+                stem
+            }
+        };
+
+        let base_output = parent.join(format!("{}.zip", base_name));
+        get_available_path(&base_output, false)
+    }
+}
+
 fn print_usage() {
-    println!("Usage: ea <input> <output>");
+    println!("Usage: ea <input> [output]");
     println!("\nExamples:");
 
     #[cfg(feature = "decode")]
-    println!("  ea archive.tar.gz output_dir/    # Decompress");
+    println!("  ea archive.tar.gz output_dir/    # Decompress to output_dir/");
+    #[cfg(feature = "decode")]
+    println!("  ea archive.tar.gz                # Decompress to archive/");
 
     #[cfg(feature = "encode")]
-    println!("  ea input_dir/ archive.tar.gz     # Compress");
+    println!("  ea input_dir/ archive.tar.gz     # Compress to archive.tar.gz");
+    #[cfg(feature = "encode")]
+    println!("  ea input_dir/                    # Compress to input_dir.zip");
 
     println!("\nSupported formats:");
     let mut formats = Vec::new();
@@ -300,18 +377,19 @@ fn print_usage() {
 fn main() {
     let mut args = std::env::args().skip(1);
     let input = args.next();
-    let output = args.next();
+    let output_arg = args.next();
 
-    if input.is_none() || output.is_none() {
+    if input.is_none() {
         print_usage();
         process::exit(1);
     }
 
     let input = input.unwrap();
-    let output = output.unwrap();
 
-    // Detect input and output format
     let input_fmt = Fmt::guess(&input);
+
+    let output = output_arg.unwrap_or_else(|| get_default_output(&input, input_fmt));
+
     let output_fmt = Fmt::guess(&output);
 
     // Handle compression or decompression based on enabled features

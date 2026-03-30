@@ -92,16 +92,31 @@ std::fs::write("output.zip", archive)?;
 
 ### CLI Usage
 
-Decompress an archive:
+The CLI supports optional output paths. If the output path is omitted, the tool automatically infers the default output name and prevents overwriting by appending incremental numbers (e.g., `(1)`).
+
+Decompress an archive to a specific directory:
 
 ```bash
 ea archive.tar.gz output_dir/
 ```
 
-Compress a directory:
+Decompress an archive to an automatically named directory (`./archive/`):
+
+```bash
+ea archive.tar.gz
+```
+
+Compress a directory to a specific archive:
 
 ```bash
 ea input_dir/ archive.tar.gz
+```
+
+Compress a directory or file using an auto-inferred path (`./input_dir.zip` or `./file.zip`):
+
+```bash
+ea input_dir/
+ea my_file.txt
 ```
 
 ## Supported Formats
