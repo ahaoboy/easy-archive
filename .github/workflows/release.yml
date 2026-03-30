@@ -42,6 +42,7 @@ jobs:
       - name: run cross-build
         uses: ahaoboy/cross-build@v1
         with:
+          features: cli
           bin: easy-archive
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           target: ${{ matrix.target }}

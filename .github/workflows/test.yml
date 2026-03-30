@@ -43,28 +43,30 @@ jobs:
         run: |
           cd easy-archive
           curl -L -o mujs.tar.xz https://github.com/ahaoboy/mujs-build/releases/download/v0.0.11/mujs-${{ matrix.target }}.tar.xz
-          easy-archive ./mujs.tar.xz ./mujs
+          easy-archive ./mujs.tar.xz
           ls -lh ./mujs
           echo "console.log(1+1)" > ./a.js
           ./mujs/mujs ./a.js
 
           curl -L -o 7z.tar.xz https://github.com/ip7z/7zip/releases/download/24.09/7z2409-linux-x64.tar.xz
-          easy-archive ./7z.tar.xz ./7z
+          easy-archive ./7z.tar.xz
 
           curl -L -o bun.zip https://github.com/oven-sh/bun/releases/latest/download/bun-darwin-x64.zip
-          easy-archive ./bun.zip ./bun
+          easy-archive ./bun.zip
 
           curl -L -o spidermonkey.tar.xz https://github.com/ahaoboy/spidermonkey-build/releases/download/v0.1.5/spidermonkey-x86_64-unknown-linux-gnu.tar.xz
-          easy-archive ./spidermonkey.tar.xz ./spidermonkey
+          easy-archive ./spidermonkey.tar.xz -o ./spidermonkey
 
           curl -L -o v8.tar.xz https://github.com/ahaoboy/v8-build/releases/download/v0.1.6/v8-x86_64-unknown-linux-gnu.tar.xz
-          easy-archive ./v8.tar.xz ./v8
+          easy-archive ./v8.tar.xz
 
           curl -L -o zig.tar.xz https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz
-          easy-archive ./zig.tar.xz ./zig
+          easy-archive ./zig.tar.xz
 
           curl -L -o bun-profile.zip https://github.com/oven-sh/bun/releases/download/bun-v1.2.3/bun-linux-aarch64-musl-profile.zip
-          easy-archive ./bun-profile.zip ./bun-profile
+          easy-archive ./bun-profile.zip
+
+          ls -lh
   js-test:
     strategy:
       matrix:

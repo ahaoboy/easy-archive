@@ -15,6 +15,65 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process;
 
+use clap::Parser;
+
+/// Command-line interface for easy-archive
+///
+/// This binary provides a simple CLI for compressing and decompressing archives.
+fn get_help_text() -> &'static str {
+    static HELP_TEXT: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+
+    HELP_TEXT
+        .get_or_init(|| {
+            let mut help = String::new();
+            help.push_str("Supported formats:\n");
+            let mut formats = Vec::new();
+
+            #[cfg(feature = "tar")]
+            formats.push(".tar");
+            #[cfg(feature = "tar-gz")]
+            formats.extend(&[".tar.gz", ".tgz"]);
+            #[cfg(feature = "tar-xz")]
+            formats.extend(&[".tar.xz", ".txz"]);
+            #[cfg(feature = "tar-bz")]
+            formats.extend(&[".tar.bz2", ".tbz2", ".tbz"]);
+            #[cfg(feature = "tar-zstd")]
+            formats.extend(&[".tar.zst", ".tzst"]);
+            #[cfg(feature = "zip")]
+            formats.push(".zip");
+
+            if formats.is_empty() {
+                help.push_str("  (No formats enabled)\n");
+            } else {
+                help.push_str(&format!("  {}\n", formats.join(", ")));
+            }
+
+            help.push_str("\nEnabled operations:\n");
+            #[cfg(feature = "decode")]
+            help.push_str("  - Decode (extract archives)\n");
+            #[cfg(feature = "encode")]
+            help.push_str("  - Encode (create archives)\n");
+
+            #[cfg(not(any(feature = "decode", feature = "encode")))]
+            help.push_str("  (No operations enabled)\n");
+
+            help
+        })
+        .as_str()
+}
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None, after_help = get_help_text())]
+struct Cli {
+    /// Input files or directories (multiple allowed)
+    #[arg(required = true)]
+    inputs: Vec<String>,
+
+    /// Output archive or directory
+    #[arg(short, long)]
+    output: Option<String>,
+}
+
 /// Collect files and directories recursively, skipping symlinks
 ///
 /// # Arguments
@@ -24,7 +83,7 @@ use std::process;
 /// * `Ok(Vec<File>)` - List of collected files
 /// * `Err(io::Error)` - If file system operations fail
 #[cfg(feature = "encode")]
-fn collect_files(input_path: &Path) -> io::Result<Vec<File>> {
+fn collect_files(input_path: &Path, strip_root: bool) -> io::Result<Vec<File>> {
     let mut files = Vec::new();
     let input_path = input_path.clean();
 
@@ -47,7 +106,35 @@ fn collect_files(input_path: &Path) -> io::Result<Vec<File>> {
 
     // If input is a directory, process recursively
     if input_path.is_dir() {
-        collect_files_recursive(&input_path, &input_path, &mut files)?;
+        let base_path = if strip_root {
+            input_path.as_path()
+        } else {
+            input_path.parent().unwrap_or_else(|| Path::new(""))
+        };
+
+        if !strip_root {
+            let rel_path = input_path
+                .strip_prefix(base_path)
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_else(|_| {
+                    input_path
+                        .file_name()
+                        .map(|n| n.to_string_lossy().to_string())
+                        .unwrap_or_default()
+                });
+
+            if !rel_path.is_empty() && rel_path != "." {
+                files.push(File {
+                    path: rel_path.clone(),
+                    buffer: vec![],
+                    is_dir: true,
+                    mode: None,
+                    last_modified: None,
+                });
+            }
+        }
+
+        collect_files_recursive(base_path, &input_path, &mut files)?;
     }
 
     Ok(files)
@@ -215,25 +302,30 @@ fn handle_decompression(input: &str, output: &str, fmt: Fmt) {
 
 /// Handle compression operation
 #[cfg(feature = "encode")]
-fn handle_compression(input: &str, output: &str, fmt: Fmt) {
-    let input_path = Path::new(input).clean();
-    if !input_path.exists() {
-        eprintln!("Error: Input file or directory '{}' does not exist", input);
-        process::exit(1);
-    }
+fn handle_compression(inputs: &[String], output: &str, fmt: Fmt) {
+    let mut all_files = Vec::new();
+    let strip_root = inputs.len() == 1;
 
-    let files = match collect_files(&input_path) {
-        Ok(f) => f,
-        Err(e) => {
-            eprintln!("Error: Failed to collect files: {}", e);
+    for input in inputs {
+        let input_path = Path::new(input).clean();
+        if !input_path.exists() {
+            eprintln!("Error: Input file or directory '{}' does not exist", input);
             process::exit(1);
         }
-    };
 
-    let total_size: usize = files.iter().map(|f| f.buffer.len()).sum();
-    let file_count = files.len();
+        match collect_files(&input_path, strip_root) {
+            Ok(f) => all_files.extend(f),
+            Err(e) => {
+                eprintln!("Error: Failed to collect files from '{}': {}", input, e);
+                process::exit(1);
+            }
+        }
+    }
 
-    let buffer = match fmt.encode(files) {
+    let total_size: usize = all_files.iter().map(|f| f.buffer.len()).sum();
+    let file_count = all_files.len();
+
+    let buffer = match fmt.encode(all_files) {
         Ok(b) => b,
         Err(e) => {
             display_error(&e);
@@ -272,7 +364,7 @@ fn get_available_path(base_path: &Path, is_directory: bool) -> String {
         } else {
             format!("{}({}).{}", file_name, i, ext)
         };
-        
+
         let new_path = parent.join(&new_name);
         if !new_path.exists() {
             return new_path.to_string_lossy().into_owned();
@@ -281,114 +373,92 @@ fn get_available_path(base_path: &Path, is_directory: bool) -> String {
     }
 }
 
-fn get_default_output(input: &str, input_fmt: Option<Fmt>) -> String {
-    let input_path = Path::new(input).clean();
+fn get_default_output(inputs: &[String], input_fmt: Option<Fmt>) -> String {
+    if inputs.is_empty() {
+        return get_available_path(&PathBuf::from("archive.zip"), false);
+    }
 
-    if let Some(fmt) = input_fmt {
-        let mut dir_name = input_path.file_name()
-            .map(|s| s.to_string_lossy().into_owned())
-            .unwrap_or_else(|| "archive".to_string());
+    if inputs.len() == 1 {
+        let input_path = Path::new(&inputs[0]).clean();
 
-        for ext in fmt.extensions() {
-            if dir_name.ends_with(ext) {
-                dir_name = dir_name[..dir_name.len() - ext.len()].to_string();
-                break;
+        if let Some(fmt) = input_fmt {
+            let mut dir_name = input_path
+                .file_name()
+                .map(|s| s.to_string_lossy().into_owned())
+                .unwrap_or_else(|| "archive".to_string());
+
+            for ext in fmt.extensions() {
+                if dir_name.ends_with(ext) {
+                    dir_name = dir_name[..dir_name.len() - ext.len()].to_string();
+                    break;
+                }
             }
-        }
-        
-        let mut base_output = input_path.parent().unwrap_or_else(|| Path::new("")).join(dir_name);
-        if base_output.as_os_str().is_empty() {
-            base_output = PathBuf::from("archive");
-        }
 
-        get_available_path(&base_output, true)
+            let mut base_output = input_path
+                .parent()
+                .unwrap_or_else(|| Path::new(""))
+                .join(dir_name);
+            if base_output.as_os_str().is_empty() {
+                base_output = PathBuf::from("archive");
+            }
+
+            return get_available_path(&base_output, true);
+        }
+    }
+
+    let first_input = Path::new(&inputs[0]).clean();
+    let parent = first_input.parent().unwrap_or_else(|| Path::new(""));
+
+    let base_name = if inputs.len() > 1 {
+        parent
+            .file_name()
+            .map(|s| s.to_string_lossy().into_owned())
+            .unwrap_or_else(|| "archive".to_string())
     } else {
-        let parent = input_path.parent().unwrap_or_else(|| Path::new(""));
-        
-        let base_name = if input_path.is_dir() {
-            input_path.file_name()
+        if first_input.is_dir() {
+            first_input
+                .file_name()
                 .map(|s| s.to_string_lossy().into_owned())
                 .unwrap_or_else(|| "archive".to_string())
         } else {
-            let stem = input_path.file_stem()
+            let stem = first_input
+                .file_stem()
                 .map(|s| s.to_string_lossy().into_owned())
                 .unwrap_or_default();
-            
+
             if stem.is_empty() || stem.starts_with('.') {
-                parent.file_name()
+                parent
+                    .file_name()
                     .map(|s| s.to_string_lossy().into_owned())
                     .unwrap_or_else(|| "archive".to_string())
             } else {
                 stem
             }
-        };
+        }
+    };
 
-        let base_output = parent.join(format!("{}.zip", base_name));
-        get_available_path(&base_output, false)
-    }
-}
-
-fn print_usage() {
-    println!("Usage: ea <input> [output]");
-    println!("\nExamples:");
-
-    #[cfg(feature = "decode")]
-    println!("  ea archive.tar.gz output_dir/    # Decompress to output_dir/");
-    #[cfg(feature = "decode")]
-    println!("  ea archive.tar.gz                # Decompress to archive/");
-
-    #[cfg(feature = "encode")]
-    println!("  ea input_dir/ archive.tar.gz     # Compress to archive.tar.gz");
-    #[cfg(feature = "encode")]
-    println!("  ea input_dir/                    # Compress to input_dir.zip");
-
-    println!("\nSupported formats:");
-    let mut formats = Vec::new();
-
-    #[cfg(feature = "tar")]
-    formats.push(".tar");
-    #[cfg(feature = "tar-gz")]
-    formats.extend(&[".tar.gz", ".tgz"]);
-    #[cfg(feature = "tar-xz")]
-    formats.extend(&[".tar.xz", ".txz"]);
-    #[cfg(feature = "tar-bz")]
-    formats.extend(&[".tar.bz2", ".tbz2", ".tbz"]);
-    #[cfg(feature = "tar-zstd")]
-    formats.extend(&[".tar.zst", ".tzst"]);
-    #[cfg(feature = "zip")]
-    formats.push(".zip");
-
-    if formats.is_empty() {
-        println!("  (No formats enabled)");
+    let final_base_name = if base_name.is_empty() {
+        "archive".to_string()
     } else {
-        println!("  {}", formats.join(", "));
-    }
-
-    println!("\nEnabled operations:");
-    #[cfg(feature = "decode")]
-    println!("  - Decode (extract archives)");
-    #[cfg(feature = "encode")]
-    println!("  - Encode (create archives)");
-
-    #[cfg(not(any(feature = "decode", feature = "encode")))]
-    println!("  (No operations enabled)");
+        base_name
+    };
+    let base_output = parent.join(format!("{}.zip", final_base_name));
+    get_available_path(&base_output, false)
 }
 
 fn main() {
-    let mut args = std::env::args().skip(1);
-    let input = args.next();
-    let output_arg = args.next();
+    let cli = Cli::parse();
+    let inputs = cli.inputs;
 
-    if input.is_none() {
-        print_usage();
-        process::exit(1);
-    }
+    let input_fmt = if inputs.len() == 1 {
+        Fmt::guess(&inputs[0])
+    } else {
+        None // Multiple files always evaluate to a single compression output archive
+    };
 
-    let input = input.unwrap();
-
-    let input_fmt = Fmt::guess(&input);
-
-    let output = output_arg.unwrap_or_else(|| get_default_output(&input, input_fmt));
+    let output = cli
+        .output
+        .unwrap_or_else(|| get_default_output(&inputs, input_fmt));
 
     let output_fmt = Fmt::guess(&output);
 
@@ -397,12 +467,12 @@ fn main() {
         #[cfg(feature = "decode")]
         (Some(fmt), None) => {
             // Decompression
-            handle_decompression(&input, &output, fmt);
+            handle_decompression(&inputs[0], &output, fmt);
         }
         #[cfg(feature = "encode")]
         (None, Some(fmt)) => {
             // Compression
-            handle_compression(&input, &output, fmt);
+            handle_compression(&inputs, &output, fmt);
         }
         (Some(_), Some(_)) => {
             eprintln!("Error: Both input and output are archive formats.");
@@ -431,7 +501,6 @@ fn main() {
             {
                 eprintln!("Error: Cannot identify input and output formats.");
                 eprintln!("At least one must be a recognized archive format.");
-                print_usage();
             }
             process::exit(1);
         }

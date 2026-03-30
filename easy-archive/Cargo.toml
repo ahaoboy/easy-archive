@@ -10,6 +10,7 @@ authors = { workspace = true }
 [[bin]]
 path = "src/main.rs"
 name = "easy-archive"
+required-features = ["cli"]
 
 [features]
 # Default: all formats with both encode and decode
@@ -22,9 +23,9 @@ default = [
   "zip",
   "encode",
   "decode",
-  "7z"
+  "7z",
 ]
-cli = ["default"]
+cli = ["default", "dep:clap"]
 wasm = ["wasm-bindgen", "default"]
 
 # Operation features
@@ -46,6 +47,7 @@ zip = ["dep:zip", "dep:time"]
 rc-zip = ["dep:rc-zip", "dep:rc-zip-sync"]
 
 [dependencies]
+clap = { workspace = true, optional = true }
 # Core dependencies
 thiserror = { workspace = true }
 path-clean = { workspace = true }
@@ -70,4 +72,3 @@ sevenz-rust2 = { workspace = true, optional = true }
 
 # WASM support
 wasm-bindgen = { workspace = true, optional = true }
-

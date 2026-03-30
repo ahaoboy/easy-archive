@@ -92,12 +92,12 @@ std::fs::write("output.zip", archive)?;
 
 ### CLI Usage
 
-The CLI supports optional output paths. If the output path is omitted, the tool automatically infers the default output name and prevents overwriting by appending incremental numbers (e.g., `(1)`).
+The CLI supports multiple inputs and optional output paths. If the output path (`-o`) is omitted, the tool automatically infers the default output name and prevents overwriting by appending incremental numbers (e.g., `(1)`).
 
 Decompress an archive to a specific directory:
 
 ```bash
-easy-archive archive.tar.gz output_dir/
+easy-archive archive.tar.gz -o output_dir/
 ```
 
 Decompress an archive to an automatically named directory (`./archive/`):
@@ -106,17 +106,23 @@ Decompress an archive to an automatically named directory (`./archive/`):
 easy-archive archive.tar.gz
 ```
 
-Compress a directory to a specific archive:
+Compress multiple input queries to a specific archive:
 
 ```bash
-easy-archive input_dir/ archive.tar.gz
+easy-archive input_dir/ another_file.txt -o archive.tar.gz
 ```
 
-Compress a directory or file using an auto-inferred path (`./input_dir.zip` or `./file.zip`):
+Compress a single directory using an auto-inferred path (`./input_dir.zip`).
+**Note:** Single directory compression strips the root folder from the zip structure.
 
 ```bash
 easy-archive input_dir/
-easy-archive my_file.txt
+```
+
+Compress multiple directories/files using an auto-inferred path (the zip is named after the first item's parent directory):
+
+```bash
+easy-archive dir1/ dir2/ my_file.txt
 ```
 
 ## Supported Formats

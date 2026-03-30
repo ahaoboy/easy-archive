@@ -13,6 +13,7 @@ authors = ["ahaoboy"]
 include = ["/easy-archive", "/Cargo.toml", "/README.md"]
 
 [workspace.dependencies]
+clap = { version = "4", features = ["derive"] }
 strum = "0.28"
 strum_macros = "0.28"
 thiserror = "2"
