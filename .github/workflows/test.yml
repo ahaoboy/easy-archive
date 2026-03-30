@@ -36,35 +36,35 @@ jobs:
       - name: cargo test
         run: |
           cargo test
-      - name: cargo run
+      - name: cargo install
         run: |
-          cargo run
+          cargo install --path .
       - name: test cli
         run: |
           cd easy-archive
           curl -L -o mujs.tar.xz https://github.com/ahaoboy/mujs-build/releases/download/v0.0.11/mujs-${{ matrix.target }}.tar.xz
-          cargo run -- ./mujs.tar.xz ./mujs
+          ea ./mujs.tar.xz ./mujs
           ls -lh ./mujs
           echo "console.log(1+1)" > ./a.js
           ./mujs/mujs ./a.js
 
           curl -L -o 7z.tar.xz https://github.com/ip7z/7zip/releases/download/24.09/7z2409-linux-x64.tar.xz
-          cargo run -- ./7z.tar.xz ./7z
+          ea ./7z.tar.xz ./7z
 
           curl -L -o bun.zip https://github.com/oven-sh/bun/releases/latest/download/bun-darwin-x64.zip
-          cargo run -- ./bun.zip ./bun
+          ea ./bun.zip ./bun
 
           curl -L -o spidermonkey.tar.xz https://github.com/ahaoboy/spidermonkey-build/releases/download/v0.1.5/spidermonkey-x86_64-unknown-linux-gnu.tar.xz
-          cargo run -- ./spidermonkey.tar.xz ./spidermonkey
+          ea ./spidermonkey.tar.xz ./spidermonkey
 
           curl -L -o v8.tar.xz https://github.com/ahaoboy/v8-build/releases/download/v0.1.6/v8-x86_64-unknown-linux-gnu.tar.xz
-          cargo run -- ./v8.tar.xz ./v8
+          ea ./v8.tar.xz ./v8
 
           curl -L -o zig.tar.xz https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz
-          cargo run -- ./zig.tar.xz ./zig
+          ea ./zig.tar.xz ./zig
 
           curl -L -o bun-profile.zip https://github.com/oven-sh/bun/releases/download/bun-v1.2.3/bun-linux-aarch64-musl-profile.zip
-          cargo run -- ./bun-profile.zip ./bun-profile
+          ea ./bun-profile.zip ./bun-profile
   js-test:
     strategy:
       matrix:
