@@ -61,8 +61,8 @@ impl Decode for Zip {
             let path = clean(&path);
             let last_modified = file
                 .last_modified()
-                .and_then(|dt| time::OffsetDateTime::try_from(dt).ok())
-                .map(|dt| dt.unix_timestamp() as u64);
+                .and_then(|dt| time::PrimitiveDateTime::try_from(dt).ok())
+                .map(|pt| pt.assume_utc().unix_timestamp() as u64);
 
             files.push(File::new(path, buffer, None, is_dir, last_modified));
         }

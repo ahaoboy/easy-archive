@@ -13,12 +13,12 @@ authors = ["ahaoboy"]
 include = ["/easy-archive", "/Cargo.toml", "/README.md"]
 
 [workspace.dependencies]
-strum = "0.27"
-strum_macros = "0.27"
+strum = "0.28"
+strum_macros = "0.28"
 thiserror = "2"
 wasm-bindgen = { version = "0.2" }
 tar = { package = "binstall-tar", version = "0.4" }
-zip = { version = "6", default-features = false, features = [
+zip = { version = "8", default-features = false, features = [
   # "aes-crypto" # getrandom error
   "deflate",
   "time",

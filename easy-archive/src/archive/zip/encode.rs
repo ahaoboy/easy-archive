@@ -34,7 +34,9 @@ impl Encode for Zip {
 
             if let Some(timestamp) = last_modified
                 && let Ok(offset_time) = OffsetDateTime::from_unix_timestamp(timestamp as i64)
-                && let Ok(datetime) = DateTime::try_from(offset_time)
+                && let Ok(datetime) = DateTime::try_from(
+                    time::PrimitiveDateTime::new(offset_time.date(), offset_time.time())
+                )
             {
                 options = options.last_modified_time(datetime);
             }
