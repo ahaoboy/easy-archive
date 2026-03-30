@@ -38,7 +38,7 @@ jobs:
           cargo test
       - name: cargo install
         run: |
-          cargo install --path .
+          cargo install --path easy-archive
       - name: test cli
         run: |
           cd easy-archive
