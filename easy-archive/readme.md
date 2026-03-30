@@ -97,26 +97,26 @@ The CLI supports optional output paths. If the output path is omitted, the tool 
 Decompress an archive to a specific directory:
 
 ```bash
-ea archive.tar.gz output_dir/
+easy-archive archive.tar.gz output_dir/
 ```
 
 Decompress an archive to an automatically named directory (`./archive/`):
 
 ```bash
-ea archive.tar.gz
+easy-archive archive.tar.gz
 ```
 
 Compress a directory to a specific archive:
 
 ```bash
-ea input_dir/ archive.tar.gz
+easy-archive input_dir/ archive.tar.gz
 ```
 
 Compress a directory or file using an auto-inferred path (`./input_dir.zip` or `./file.zip`):
 
 ```bash
-ea input_dir/
-ea my_file.txt
+easy-archive input_dir/
+easy-archive my_file.txt
 ```
 
 ## Supported Formats
