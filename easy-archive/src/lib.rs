@@ -42,6 +42,12 @@ pub mod traits;
 pub mod types;
 pub mod utils;
 
+#[cfg(feature = "cli")]
+pub mod cli;
+
+#[cfg(feature = "convert")]
+pub mod convert;
+
 // Re-export commonly used types and functions
 pub use error::{ArchiveError, Result};
 pub use types::{File, Fmt};
@@ -58,6 +64,9 @@ pub use utils::check_duplicate_files;
 
 #[cfg(all(feature = "encode", feature = "decode"))]
 pub use traits::Archive;
+
+#[cfg(feature = "convert")]
+pub use convert::{convert_archive, convert_archive_file};
 
 #[cfg(test)]
 mod test {

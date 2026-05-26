@@ -24,8 +24,9 @@ default = [
   "encode",
   "decode",
   "7z",
+  "convert",
 ]
-cli = ["default", "dep:clap"]
+cli = ["default", "dep:clap", "convert"]
 wasm = ["wasm-bindgen", "default"]
 
 # Operation features
@@ -33,6 +34,10 @@ wasm = ["wasm-bindgen", "default"]
 # When combined with specific formats (e.g., ["encode", "tar-xz"]), only those formats are enabled
 encode = []
 decode = []
+
+# Convert feature: enables direct format-to-format conversion (requires both encode and decode)
+# Example: convert a .tar.gz to .zip in a single operation
+convert = ["encode", "decode"]
 
 # Format features (base dependencies)
 tar = ["dep:tar"]
