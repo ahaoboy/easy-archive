@@ -32,4 +32,4 @@ easy-archive test.zip -o ./test
 
 ## web
 
-https://easy-archive.vercel.app/
+https://ahaoboy.github.io/easy-archive/
