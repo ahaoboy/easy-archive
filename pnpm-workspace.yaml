@@ -1,3 +1,7 @@
 packages:
   - "easy-archive-wasm"
   - "web"
+allowBuilds:
+  esbuild: true
+minimumReleaseAgeExclude:
+  - '@types/node@25.9.3'
