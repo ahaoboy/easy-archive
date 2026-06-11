@@ -1,34 +1,65 @@
-import { Upload } from "antd";
-import { InboxOutlined } from "@ant-design/icons";
+import { useCallback, useState } from "react";
+import { Paper, Typography } from "@mui/material";
+import { CloudUpload } from "@mui/icons-material";
 import { SUPPORTED_EXTENSIONS } from "../utils";
-
-const { Dragger } = Upload;
 
 interface ArchiveUploaderProps {
   onUpload: (file: File) => void;
 }
 
 export function ArchiveUploader({ onUpload }: ArchiveUploaderProps) {
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragOver(false);
+      const file = e.dataTransfer.files[0];
+      if (file) onUpload(file);
+    },
+    [onUpload],
+  );
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) onUpload(file);
+    },
+    [onUpload],
+  );
+
   return (
-    <Dragger
-      name="file"
-      action="#"
-      customRequest={(e) => e.onSuccess?.(true)}
-      showUploadList={false}
-      onChange={(info) => {
-        const file = info.file.originFileObj;
-        if (file) onUpload(file);
+    <Paper
+      variant="outlined"
+      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={handleDrop}
+      sx={{
+        width: "100%",
+        maxWidth: 600,
+        p: 4,
+        textAlign: "center",
+        cursor: "pointer",
+        borderStyle: "dashed",
+        borderColor: dragOver ? "primary.main" : "divider",
+        bgcolor: dragOver ? "action.hover" : "background.paper",
+        transition: "border-color 0.2s, background-color 0.2s",
       }}
+      component="label"
     >
-      <p className="ant-upload-drag-icon">
-        <InboxOutlined />
-      </p>
-      <p className="ant-upload-text">
+      <input
+        type="file"
+        hidden
+        onChange={handleChange}
+        onClick={(e) => { (e.target as HTMLInputElement).value = ""; }}
+      />
+      <CloudUpload sx={{ fontSize: 48, color: "text.secondary", mb: 1 }} />
+      <Typography variant="body1" color="text.primary">
         Click or drag archive file to this area to upload
-      </p>
-      <p className="ant-upload-hint">
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
         Support format: {SUPPORTED_EXTENSIONS}
-      </p>
-    </Dragger>
+      </Typography>
+    </Paper>
   );
 }

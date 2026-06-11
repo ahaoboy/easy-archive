@@ -30,6 +30,6 @@
     "esbuild": "0.28.0",
     "typescript": "6.0.3",
     "vitest": "4.0.8",
-    "wasm-pack-inline": "0.1.4"
+    "wasm-pack-inline": "0.1.5"
   }
 }

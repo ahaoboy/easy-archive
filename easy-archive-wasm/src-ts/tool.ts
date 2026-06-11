@@ -3,16 +3,15 @@ import {
   cpSync,
   existsSync,
   mkdirSync,
-  readdirSync,
   readFileSync,
-  statSync,
   writeFileSync,
 } from "fs";
 import { decode, File, guess } from "./wasm";
-import { dirname, join, relative } from "path";
+import { dirname, join } from "path";
 import { tmpdir } from "os";
 import { execSync } from "child_process";
 import { Buffer } from "node:buffer";
+import { collectFiles } from "./collect";
 
 export function isMsys() {
   return !!process.env["MSYSTEM"];
@@ -26,38 +25,6 @@ export function toMsysPath(s: string): string {
 
 export function randomId() {
   return Math.random().toString(36).slice(2);
-}
-
-export function createFiles(dir: string): File[] {
-  const files: File[] = [];
-  async function dfs(currentPath: string) {
-    const entries = readdirSync(currentPath);
-    for (const entry of entries) {
-      const fullPath = join(currentPath, entry);
-      const stat = statSync(fullPath);
-      if (stat.isDirectory()) {
-        // ignore empty dir
-        dfs(fullPath);
-      } else if (stat.isFile()) {
-        const relativePath = relative(dir, fullPath).replaceAll("\\", "/");
-        const buffer = readFileSync(fullPath);
-        const file: File = {
-          path: relativePath,
-          buffer,
-          mode: stat.mode,
-          isDir: false,
-          lastModified: BigInt(+stat.mtime),
-          clone: () => {
-            return file;
-          },
-          bufferSize: buffer.length,
-        };
-        files.push(file);
-      }
-    }
-  }
-  dfs(dir);
-  return files;
 }
 
 export function extractToByShell(
@@ -111,7 +78,7 @@ export function extractToByShell(
       }
     }
   }
-  const files = createFiles(oriDir);
+  const files = collectFiles(oriDir);
   if (needCopy && tmpDir !== oriDir) {
     cpSync(tmpDir, oriDir, { recursive: true });
   }
@@ -157,6 +124,8 @@ export function extractToByWasm(
       lastModified,
       clone,
       bufferSize: buffer.length,
+      free: () => {},
+      [Symbol.dispose]: () => {},
     });
     const outputPath = join(outputDir, path);
     if (path.endsWith("/") || isDir) {

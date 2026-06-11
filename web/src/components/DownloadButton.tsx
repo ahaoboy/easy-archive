@@ -1,9 +1,7 @@
-import { Button, Select, Space, Typography } from "antd";
-import { DownloadOutlined } from "@ant-design/icons";
+import { Button, ButtonGroup, MenuItem, TextField, Typography } from "@mui/material";
+import { Download } from "@mui/icons-material";
 import type { Fmt } from "@easy-install/easy-archive";
 import { SUPPORTED_WRITE_FORMATS, stripArchiveExt } from "../utils";
-
-const { Text } = Typography;
 
 interface DownloadButtonProps {
   filename: string;
@@ -21,36 +19,36 @@ export function DownloadButton({
   const displayName = filename ? stripArchiveExt(filename) : "archive";
 
   return (
-    <Space.Compact size="large">
-      <Button
-        disabled={!filename}
-        style={{
-          maxWidth: 320,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-        title={displayName}
-      >
-        <Text ellipsis style={{ maxWidth: 280 }}>
+    <ButtonGroup variant="outlined" size="large" sx={{ mt: 2 }}>
+      <Button disabled={!filename} sx={{ textTransform: "none", px: 2 }} component="span">
+        <Typography
+          noWrap
+          sx={{ maxWidth: 260, fontSize: "inherit", fontWeight: 400 }}
+        >
           {displayName}
-        </Text>
+        </Typography>
       </Button>
-      <Select
+      <TextField
+        select
         value={outputFmt}
-        onChange={onFmtChange}
-        popupMatchSelectWidth={false}
-        options={SUPPORTED_WRITE_FORMATS.map((f) => ({
-          value: f.fmt,
-          label: f.ext,
-        }))}
-      />
-      <Button
-        type="primary"
-        icon={<DownloadOutlined />}
-        onClick={onDownload}
+        onChange={(e) => onFmtChange(Number(e.target.value) as Fmt)}
+        size="small"
+        sx={{ minWidth: 90, "& .MuiOutlinedInput-notchedOutline": { borderRadius: 0 } }}
       >
+        {SUPPORTED_WRITE_FORMATS.map((f) => (
+          <MenuItem key={f.fmt} value={f.fmt}>
+            {f.ext}
+          </MenuItem>
+        ))}
+      </TextField>
+      <Button
+        variant="contained"
+        startIcon={<Download />}
+        onClick={onDownload}
+        sx={{ textTransform: "none" }}
+      >
+        Download
       </Button>
-    </Space.Compact>
+    </ButtonGroup>
   );
 }
