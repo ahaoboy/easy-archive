@@ -11,14 +11,14 @@ export function collectFiles(rootDir: string): File[] {
   const files: File[] = [];
 
   try {
-    const stat = statSync(resolved);
-    if (stat.isFile()) {
+    const st = statSync(resolved);
+    if (st.isFile()) {
       const buffer = readFileSync(resolved);
       const name = resolved.split(sep).pop() || "";
-      files.push(new File(name, new Uint8Array(buffer), undefined, false, undefined));
+      files.push(new File(name, new Uint8Array(buffer), st.mode, false, BigInt(+st.mtime)));
       return files;
     }
-    if (stat.isDirectory()) {
+    if (st.isDirectory()) {
       walkDir(resolved, resolved, files);
     }
   } catch {
@@ -35,13 +35,14 @@ function walkDir(basePath: string, currentPath: string, files: File[]): void {
 
     const fullPath = join(currentPath, entry.name);
     const relPath = relative(basePath, fullPath).replaceAll("\\", "/") || entry.name;
+    const st = statSync(fullPath);
 
     if (entry.isDirectory()) {
-      files.push(new File(relPath, new Uint8Array(0), undefined, true, undefined));
+      files.push(new File(relPath, new Uint8Array(0), st.mode, true, BigInt(+st.mtime)));
       walkDir(basePath, fullPath, files);
     } else {
       const buffer = readFileSync(fullPath);
-      files.push(new File(relPath, new Uint8Array(buffer), undefined, false, undefined));
+      files.push(new File(relPath, new Uint8Array(buffer), st.mode, false, BigInt(+st.mtime)));
     }
   }
 }

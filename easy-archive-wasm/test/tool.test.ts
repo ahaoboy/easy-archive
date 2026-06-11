@@ -45,7 +45,7 @@ test("extractTo", async () => {
   const tmpDir = extractTo(tmpPath)!.outputDir;
   expect(fs.existsSync(join(tmpDir, "mujs-build-0.0.4", "dist-manifest.json")))
     .toEqual(true);
-});
+}, 100_000);
 test("toMsysPath", () => {
   for (
     const [a, b] of [

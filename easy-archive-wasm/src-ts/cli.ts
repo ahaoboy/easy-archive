@@ -12,13 +12,22 @@ import { collectFiles } from "./collect";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
+/** Safely read a WASM File's mode, falling back to 0 if the getter throws. */
+function safeMode(file: { mode?: number | null; isDir: boolean }): number {
+  try {
+    return file.mode ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 /** Print a summary table of the archive contents. */
 function printFileList(files: Array<{ path: string; buffer: Uint8Array | { length: number }; isDir: boolean; mode?: number | null }>): number {
   let totalSize = 0;
   for (const file of files) {
     totalSize += file.buffer.length;
     console.log(
-      `${modeToString(file.mode ?? 0, file.isDir).padEnd(11)} ${humanSize(file.buffer.length).padStart(8)} ${file.path}`,
+      `${modeToString(safeMode(file), file.isDir).padEnd(11)} ${humanSize(file.buffer.length).padStart(8)} ${file.path}`,
     );
   }
   return totalSize;
@@ -42,8 +51,9 @@ function writeExtractedFiles(outputDir: string, files: Array<{ path: string; buf
       writeFileSync(outputPath, file.buffer);
     }
 
-    if (file.mode && process.platform !== "win32") {
-      chmodSync(outputPath, file.mode);
+    const mode = safeMode(file);
+    if (mode && process.platform !== "win32") {
+      try { chmodSync(outputPath, mode); } catch { /* ignore */ }
     }
   }
 }
