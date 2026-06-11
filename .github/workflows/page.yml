@@ -1,0 +1,76 @@
+name: page
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * *"
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "branch"
+        required: false
+        type: string
+        default: main
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -CeEuo pipefail {0}
+
+jobs:
+  page:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: build
+        run: |
+          git config --global init.defaultBranch main
+          git config --global user.email "ahaoboy@mpv.com"
+          git config --global user.name "ahaoboy-build"
+          git config --global --type bool push.autoSetupRemote true
+
+          git clone https://github.com/ahaoboy/easy-archive.git ../easy-archive
+          cd ../easy-archive
+
+          git checkout ${{ github.event.inputs.branch || 'main' }}
+
+          pnpm i
+          pnpm run build
+
+      - name: commit
+        run: |
+          mkdir -p page
+          cp -rf ../easy-archive/web/dist/* ./page
+
+          ls -l
+
+          rm -rf .git
+          git init
+          git remote add origin https://github.com/ahaoboy/easy-archive.git
+          git add .
+          git commit -am "update by ci"
+
+      - name: ls
+        run: |
+          ls -l
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        if: github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: page
+          force: true
