@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 import { expect, test } from "vitest";
 import { decode, encode, extensions, File, Fmt, guess } from "../src-ts";
-import { createFiles } from "../src-ts/tool";
+import { collectFiles } from "../src-ts/collect";
 import { Buffer } from "node:buffer";
 
 const assetsDir = "../assets";
@@ -41,9 +41,7 @@ test("extension", () => {
 test("encode decode", () => {
   // FIXME: support encode bz
   for (const i of [Fmt.Zip, Fmt.Tar, Fmt.TarGz, Fmt.TarXz, Fmt.TarZstd]) {
-    const v: File[] = createFiles(assetsDir).map((i) => {
-      return new File(i.path, i.buffer, i.mode, i.isDir, i.lastModified);
-    });
+    const v: File[] = collectFiles(assetsDir);
 
     const compress = encode(i, v);
     expect(compress?.length).toBeTruthy();

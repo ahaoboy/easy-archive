@@ -2,11 +2,11 @@ import * as path from "path";
 import * as fs from "fs";
 import { homedir, tmpdir } from "os";
 import {
-  createFiles,
   downloadToFile,
   extractTo,
   toMsysPath,
 } from "../src-ts/tool";
+import { collectFiles } from "../src-ts/collect";
 import { expect, test } from "vitest";
 import { join } from "path";
 import process from "node:process";
@@ -58,7 +58,7 @@ test("toMsysPath", () => {
   }
 });
 test("createFiles", () => {
-  const files = createFiles("src-ts");
+  const files = collectFiles("src-ts");
   expect(files.length > 0).toEqual(true);
   const ei = files.find((i) => i.path === "wasm/index.d.ts")!.buffer;
   const txt = Buffer.from(ei).toString();
