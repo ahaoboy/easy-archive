@@ -16,6 +16,7 @@ defaults:
 jobs:
   rust-test:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - target: aarch64-apple-darwin
@@ -69,6 +70,7 @@ jobs:
           ls -lh
   js-test:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - target: aarch64-apple-darwin
