@@ -43,8 +43,8 @@ jobs:
           git config --global user.name "ahaoboy-build"
           git config --global --type bool push.autoSetupRemote true
 
-          git clone https://github.com/ahaoboy/easy-archive.git ../easy-archive
-          cd ../easy-archive
+          git clone https://github.com/ahaoboy/easy-archive.git ../build-page
+          cd ../build-page
 
           git checkout ${{ github.event.inputs.branch || 'main' }}
 
@@ -54,11 +54,11 @@ jobs:
       - name: commit
         run: |
           mkdir -p page
-          cp -rf ../easy-archive/web/dist/* ./page
+          cp -rf ../build-page/web/dist/* ./docs
 
           ls -l
 
-          rm -rf .git
+          find . -maxdepth 1 ! -name "docs" ! -name "." -exec rm -rf {} +
           git init
           git remote add origin https://github.com/ahaoboy/easy-archive.git
           git add .
@@ -72,5 +72,5 @@ jobs:
         if: github.ref == 'refs/heads/main'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: page
+          branch: docs
           force: true
