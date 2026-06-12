@@ -124,8 +124,6 @@ export function extractToByWasm(
       lastModified,
       clone,
       bufferSize: buffer.length,
-      free: () => {},
-      [Symbol.dispose]: () => {},
     });
     const outputPath = join(outputDir, path);
     if (path.endsWith("/") || isDir) {
