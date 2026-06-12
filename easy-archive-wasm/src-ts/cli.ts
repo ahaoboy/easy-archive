@@ -5,15 +5,14 @@ import {
   writeFileSync,
 } from "fs";
 import { dirname, join, resolve } from "path";
-import { encode, guess } from "./index";
-import { humanSize, modeToString } from "./index";
+import { encode, guess, humanSize, modeToString, File } from "./index";
 import { extractTo } from "./tool";
 import { collectFiles } from "./collect";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
 /** Safely read a WASM File's mode, falling back to 0 if the getter throws. */
-function safeMode(file: { mode?: number | null; isDir: boolean }): number {
+function safeMode(file: File): number {
   try {
     return file.mode ?? 0;
   } catch {
@@ -22,19 +21,19 @@ function safeMode(file: { mode?: number | null; isDir: boolean }): number {
 }
 
 /** Print a summary table of the archive contents. */
-function printFileList(files: Array<{ path: string; buffer: Uint8Array | { length: number }; isDir: boolean; mode?: number | null }>): number {
+function printFileList(files: Array<File>): number {
   let totalSize = 0;
   for (const file of files) {
-    totalSize += file.buffer.length;
+    totalSize += file.bufferSize;
     console.log(
-      `${modeToString(safeMode(file), file.isDir).padEnd(11)} ${humanSize(file.buffer.length).padStart(8)} ${file.path}`,
+      `${modeToString(safeMode(file), file.isDir).padEnd(11)} ${humanSize(file.bufferSize).padStart(8)} ${file.path}`,
     );
   }
   return totalSize;
 }
 
 /** Write files to an output directory, creating parent dirs and setting permissions. */
-function writeExtractedFiles(outputDir: string, files: Array<{ path: string; buffer: Uint8Array; isDir: boolean; mode?: number | null }>): void {
+function writeExtractedFiles(outputDir: string, files: Array<File>): void {
   for (const file of files) {
     const outputPath = join(outputDir, file.path).replaceAll("\\", "/");
     const outputParent = dirname(resolve(outputPath));
@@ -47,7 +46,7 @@ function writeExtractedFiles(outputDir: string, files: Array<{ path: string; buf
       if (!existsSync(outputPath)) {
         mkdirSync(outputPath, { recursive: true });
       }
-    } else if (file.buffer.length) {
+    } else if (file.bufferSize) {
       writeFileSync(outputPath, file.buffer);
     }
 

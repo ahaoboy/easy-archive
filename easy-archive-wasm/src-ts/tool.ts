@@ -115,7 +115,7 @@ export function extractToByWasm(
   }
   const jsFiles: File[] = [];
   for (const file of files) {
-    const { path, mode, isDir, lastModified, clone, buffer } = file;
+    const { path, mode, isDir, lastModified, clone, bufferSize, buffer } = file;
     jsFiles.push({
       path,
       buffer,
@@ -123,7 +123,7 @@ export function extractToByWasm(
       isDir,
       lastModified,
       clone,
-      bufferSize: buffer.length,
+      bufferSize,
     });
     const outputPath = join(outputDir, path);
     if (path.endsWith("/") || isDir) {
@@ -134,7 +134,7 @@ export function extractToByWasm(
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }
-    if (buffer.length) {
+    if (bufferSize) {
       writeFileSync(outputPath, buffer);
     }
 
