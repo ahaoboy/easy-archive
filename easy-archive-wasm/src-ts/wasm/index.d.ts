@@ -8,6 +8,8 @@
  * in an archive file.
  */
 export class File {
+    free(): void;
+    [Symbol.dispose](): void;
     /**
      * Clone the File (WASM only)
      */
