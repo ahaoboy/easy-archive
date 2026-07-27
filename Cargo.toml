@@ -3,7 +3,7 @@ members = ["easy-archive", "easy-archive-wasm"]
 resolver = "2"
 
 [workspace.package]
-version = "0.2.3"
+version = "0.2.4"
 edition = "2024"
 license = "MIT"
 description = "easy-archive"
@@ -30,7 +30,7 @@ zip = { version = "8", default-features = false, features = [
 ] }
 flate2 = { version = "1", default-features = false, features = ["zlib-rs"] }
 lzma-rs = "0.3"
-ruzstd = "0.8"
+ruzstd = "0.9"
 bzip2-rs = "0.1"
 path-clean = "1"
 rc-zip = { version = "5" }
