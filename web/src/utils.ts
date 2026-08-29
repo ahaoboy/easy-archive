@@ -72,7 +72,7 @@ export async function filesToData(
       isDir,
       mode: mode ?? undefined,
       buffer,
-      size: humanSize(bufferSize),
+      size: humanSize(buffer.length),
       file: item,
       lastModified,
     };
