@@ -86,7 +86,7 @@ pub fn handle_decompression(input: &str, output: &str, fmt: Fmt) {
         }
 
         // Set permissions on Unix systems
-        #[cfg(not(windows))]
+        #[cfg(unix)]
         if let Some(mode) = file.mode {
             use std::os::unix::fs::PermissionsExt;
             if let Err(e) = std::fs::set_permissions(&output_path, std::fs::Permissions::from_mode(mode)) {
