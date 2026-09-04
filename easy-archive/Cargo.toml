@@ -15,6 +15,7 @@ required-features = ["cli"]
 [features]
 # Default: all formats with both encode and decode
 default = [
+  "cli",
   "tar",
   "tar-gz",
   "tar-xz",
@@ -26,7 +27,7 @@ default = [
   "7z",
   "convert",
 ]
-cli = ["default", "dep:clap", "convert"]
+cli = ["default", "dep:clap", "convert", "upath"]
 wasm = ["wasm-bindgen", "default"]
 
 # Operation features
@@ -68,6 +69,7 @@ zstd = { workspace = true, optional = true }
 ruzstd = { workspace = true, optional = true }
 zip = { workspace = true, optional = true }
 time = { workspace = true, optional = true }
+upath = { workspace = true, optional = true }
 
 # Alternative zip implementation (optional)
 rc-zip = { workspace = true, optional = true }

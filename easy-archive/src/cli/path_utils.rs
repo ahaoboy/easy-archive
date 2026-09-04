@@ -18,39 +18,11 @@ use std::path::{Path, PathBuf};
 ///
 /// # Returns
 /// A string path that does not currently exist
-pub fn get_available_path(base_path: &Path, is_directory: bool) -> String {
-    if !base_path.exists() {
-        return base_path.to_string_lossy().into_owned();
-    }
-
-    let mut i = 1;
-    let parent = base_path.parent().unwrap_or_else(|| Path::new(""));
-    let file_name = base_path
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("");
-    let ext = base_path
-        .extension()
-        .and_then(|s| s.to_str())
-        .unwrap_or("");
-    let orig_name = base_path
-        .file_name()
-        .and_then(|s| s.to_str())
-        .unwrap_or("");
-
-    loop {
-        let new_name = if is_directory || ext.is_empty() {
-            format!("{}({})", orig_name, i)
-        } else {
-            format!("{}({}).{}", file_name, i, ext)
-        };
-
-        let new_path = parent.join(&new_name);
-        if !new_path.exists() {
-            return new_path.to_string_lossy().into_owned();
-        }
-        i += 1;
-    }
+pub fn get_available_path(base_path: &Path) -> String {
+    upath::upath(base_path)
+        .unwrap_or(base_path.to_path_buf())
+        .to_string_lossy()
+        .to_string()
 }
 
 /// Determine the default output path based on inputs and detected format
@@ -68,7 +40,7 @@ pub fn get_available_path(base_path: &Path, is_directory: bool) -> String {
 /// A default output path string
 pub fn get_default_output(inputs: &[String], input_fmt: Option<Fmt>) -> String {
     if inputs.is_empty() {
-        return get_available_path(&PathBuf::from("archive.zip"), false);
+        return get_available_path(&PathBuf::from("archive.zip"));
     }
 
     if inputs.len() == 1 {
@@ -95,7 +67,7 @@ pub fn get_default_output(inputs: &[String], input_fmt: Option<Fmt>) -> String {
                 base_output = PathBuf::from("archive");
             }
 
-            return get_available_path(&base_output, true);
+            return get_available_path(&base_output);
         }
     }
 
@@ -136,5 +108,5 @@ pub fn get_default_output(inputs: &[String], input_fmt: Option<Fmt>) -> String {
         base_name
     };
     let base_output = parent.join(format!("{}.zip", final_base_name));
-    get_available_path(&base_output, false)
+    get_available_path(&base_output)
 }

@@ -44,6 +44,7 @@ liblzma = "0.4"
 time = { version = "0.3", features = ["wasm-bindgen"] }
 zstd = "0.13"
 sevenz-rust2 = { version = "0.22" , features = ["default_wasm"]}
+upath = { git = "https://github.com/ahaoboy/upath", default-features = false, version = "0.1" }
 
 # [profile.release]
 # debug = false
