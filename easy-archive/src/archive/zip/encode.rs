@@ -18,7 +18,7 @@ impl Encode for Zip {
         check_duplicate_files(&files)?;
 
         // Pre-allocate output buffer with estimated size
-        // ZIP typically achieves 40-60% compression with Zstd
+        // ZIP typically achieves 40-60% compression with Deflate
         let estimated_size: usize = files.iter().map(|f| f.buffer.len()).sum::<usize>() / 2;
         let mut output = Vec::with_capacity(estimated_size);
         let cursor = Cursor::new(&mut output);
@@ -26,11 +26,17 @@ impl Encode for Zip {
         let mut dir_set = HashSet::with_capacity(files.len() / 4); // Estimate directory count
 
         // Helper function to create file options with timestamp
-        // Performance: Zstd provides excellent compression speed and ratio
+        //
+        // IMPORTANT: ZIP entries must use Deflate (method 8), NOT Zstd (method 93).
+        // Zstd-in-ZIP is only supported by a handful of tools (7-Zip, newer WinRAR),
+        // and the `zip` crate doesn't even write the Zstd extra field (0xFD4D) the
+        // APPNOTE spec requires for it. Android/iOS system extractors, Windows
+        // Explorer, macOS Archive Utility and web libraries (fflate, JSZip) all
+        // support only Stored + Deflate, so Zstd archives fail to open on phones.
         let create_options = |last_modified: Option<u64>| -> zip::write::FullFileOptions {
             let mut options = zip::write::FullFileOptions::default()
-                // Use Zstd for better compression/speed balance (faster than LZMA, better than Deflate)
-                .compression_method(zip::CompressionMethod::Zstd);
+                // Deflate is the universally compatible ZIP compression method
+                .compression_method(zip::CompressionMethod::Deflated);
 
             if let Some(timestamp) = last_modified
                 && let Ok(offset_time) = OffsetDateTime::from_unix_timestamp(timestamp as i64)

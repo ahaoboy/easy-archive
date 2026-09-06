@@ -1,8 +1,8 @@
-/// CLI utility module for easy-archive
-///
-/// Provides helper functions for the command-line interface including
-/// compression/decompression handlers, file collection, error display,
-/// and path utilities.
+//! CLI utility module for easy-archive
+//!
+//! Provides helper functions for the command-line interface including
+//! compression/decompression handlers, file collection, error display,
+//! and path utilities.
 
 pub mod collect;
 pub mod compress;

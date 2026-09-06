@@ -8,9 +8,7 @@ edition = "2024"
 license = "MIT"
 description = "easy-archive"
 repository = "https://github.com/ahaoboy/easy-archive"
-homepage = "https://github.com/ahaoboy/easy-archive"
 authors = ["ahaoboy"]
-include = ["/easy-archive", "/Cargo.toml", "/README.md"]
 
 [workspace.dependencies]
 clap = { version = "4", features = ["derive"] }
@@ -29,7 +27,6 @@ zip = { version = "8", default-features = false, features = [
   "zstd",
 ] }
 flate2 = { version = "1", default-features = false, features = ["zlib-rs"] }
-lzma-rs = "0.3"
 ruzstd = "0.9"
 bzip2-rs = "0.1"
 path-clean = "1"

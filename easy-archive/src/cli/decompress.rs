@@ -52,8 +52,8 @@ pub fn handle_decompression(input: &str, output: &str, fmt: Fmt) {
             .parent()
             .expect("Failed to get parent directory");
 
-        if !dir.exists() {
-            if let Err(e) = std::fs::create_dir_all(dir) {
+        if !dir.exists()
+            && let Err(e) = std::fs::create_dir_all(dir) {
                 eprintln!(
                     "Error: Failed to create directory '{}': {}",
                     dir.display(),
@@ -61,10 +61,9 @@ pub fn handle_decompression(input: &str, output: &str, fmt: Fmt) {
                 );
                 process::exit(1);
             }
-        }
 
-        if file.is_dir && !output_path.exists() {
-            if let Err(e) = std::fs::create_dir_all(&output_path) {
+        if file.is_dir && !output_path.exists()
+            && let Err(e) = std::fs::create_dir_all(&output_path) {
                 eprintln!(
                     "Error: Failed to create directory '{}': {}",
                     output_path.display(),
@@ -72,10 +71,9 @@ pub fn handle_decompression(input: &str, output: &str, fmt: Fmt) {
                 );
                 process::exit(1);
             }
-        }
 
-        if !file.is_dir && !file.buffer.is_empty() {
-            if let Err(e) = std::fs::write(&output_path, &file.buffer) {
+        if !file.is_dir && !file.buffer.is_empty()
+            && let Err(e) = std::fs::write(&output_path, &file.buffer) {
                 eprintln!(
                     "Error: Failed to write file '{}': {}",
                     output_path.display(),
@@ -83,7 +81,6 @@ pub fn handle_decompression(input: &str, output: &str, fmt: Fmt) {
                 );
                 process::exit(1);
             }
-        }
 
         // Set permissions on Unix systems
         #[cfg(unix)]

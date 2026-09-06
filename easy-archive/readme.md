@@ -134,7 +134,7 @@ easy-archive dir1/ dir2/ my_file.txt
 | TAR + XZ | `.tar.xz`, `.txz` | `tar-xz` | LZMA2 |
 | TAR + Bzip2 | `.tar.bz2`, `.tbz2` | `tar-bz` | Bzip2 |
 | TAR + Zstd | `.tar.zst`, `.tzst`, `.tzstd` | `tar-zstd` | Zstandard |
-| ZIP | `.zip` | `zip` | Various |
+| ZIP | `.zip` | `zip` | Deflate (decode also supports Bzip2/LZMA/XZ/Zstd) |
 
 ## Feature Flags
 
@@ -403,7 +403,7 @@ This removes:
 ## Performance Tips
 
 1. **Choose the Right Format**:
-   - **ZIP with Zstd**: Best balance of compression and speed
+   - **ZIP (Deflate)**: Widely compatible — every extractor (Android/iOS, Windows, macOS, web) can open it
    - **TAR.GZ**: Good compression, widely compatible
    - **TAR.XZ**: Best compression, slower
    - **TAR.ZSTD**: Fast compression, good ratio
