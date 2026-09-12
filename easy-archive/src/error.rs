@@ -52,3 +52,18 @@ pub enum ArchiveError {
     #[error("Decompression error: {0}")]
     DecompressionError(String),
 }
+
+impl ArchiveError {
+    /// Wrap an [`std::io::Error`] with additional context.
+    ///
+    /// The original [`std::io::ErrorKind`] is preserved, while the message is
+    /// prefixed with a description of the operation that failed. This keeps
+    /// errors specific (for example, which path could not be written) without
+    /// discarding the underlying operating-system error.
+    pub fn io_context(error: std::io::Error, context: impl std::fmt::Display) -> Self {
+        ArchiveError::Io(std::io::Error::new(
+            error.kind(),
+            format!("{}: {}", context, error),
+        ))
+    }
+}

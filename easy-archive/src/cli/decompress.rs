@@ -1,12 +1,14 @@
 /// Decompression handler for the CLI
 ///
 /// Handles extracting archives to a target directory.
-use crate::cli::error_display::display_error;
-use crate::{Fmt, human_size};
+use crate::{
+    Fmt,
+    error::{ArchiveError, Result},
+    human_size,
+};
 
 use path_clean::PathClean;
 use std::path::Path;
-use std::process;
 
 /// Handle decompression operation
 ///
@@ -18,22 +20,16 @@ use std::process;
 /// * `input` - Path to the input archive file
 /// * `output` - Path to the output directory
 /// * `fmt` - The format of the input archive
-pub fn handle_decompression(input: &str, output: &str, fmt: Fmt) {
-    let buffer = match std::fs::read(input) {
-        Ok(buf) => buf,
-        Err(e) => {
-            eprintln!("Error: Failed to read input file '{}': {}", input, e);
-            process::exit(1);
-        }
-    };
+///
+/// # Errors
+/// Returns an [`ArchiveError`] if the archive cannot be read or decoded,
+/// or if extracting an entry to disk fails.
+pub fn handle_decompression(input: &str, output: &str, fmt: Fmt) -> Result<()> {
+    let buffer = std::fs::read(input).map_err(|e| {
+        ArchiveError::io_context(e, format!("failed to read input file '{}'", input))
+    })?;
 
-    let files = match fmt.decode(buffer) {
-        Ok(f) => f,
-        Err(e) => {
-            display_error(&e);
-            process::exit(1);
-        }
-    };
+    let files = fmt.decode(buffer)?;
 
     let mut total_size = 0;
     let file_count = files.len();
@@ -52,41 +48,40 @@ pub fn handle_decompression(input: &str, output: &str, fmt: Fmt) {
             .parent()
             .expect("Failed to get parent directory");
 
-        if !dir.exists()
-            && let Err(e) = std::fs::create_dir_all(dir) {
-                eprintln!(
-                    "Error: Failed to create directory '{}': {}",
-                    dir.display(),
-                    e
-                );
-                process::exit(1);
-            }
+        if !dir.exists() {
+            std::fs::create_dir_all(dir).map_err(|e| {
+                ArchiveError::io_context(
+                    e,
+                    format!("failed to create directory '{}'", dir.display()),
+                )
+            })?;
+        }
 
-        if file.is_dir && !output_path.exists()
-            && let Err(e) = std::fs::create_dir_all(&output_path) {
-                eprintln!(
-                    "Error: Failed to create directory '{}': {}",
-                    output_path.display(),
-                    e
-                );
-                process::exit(1);
-            }
+        if file.is_dir && !output_path.exists() {
+            std::fs::create_dir_all(&output_path).map_err(|e| {
+                ArchiveError::io_context(
+                    e,
+                    format!("failed to create directory '{}'", output_path.display()),
+                )
+            })?;
+        }
 
-        if !file.is_dir && !file.buffer.is_empty()
-            && let Err(e) = std::fs::write(&output_path, &file.buffer) {
-                eprintln!(
-                    "Error: Failed to write file '{}': {}",
-                    output_path.display(),
-                    e
-                );
-                process::exit(1);
-            }
+        if !file.is_dir && !file.buffer.is_empty() {
+            std::fs::write(&output_path, &file.buffer).map_err(|e| {
+                ArchiveError::io_context(
+                    e,
+                    format!("failed to write file '{}'", output_path.display()),
+                )
+            })?;
+        }
 
         // Set permissions on Unix systems
         #[cfg(unix)]
         if let Some(mode) = file.mode {
             use std::os::unix::fs::PermissionsExt;
-            if let Err(e) = std::fs::set_permissions(&output_path, std::fs::Permissions::from_mode(mode)) {
+            if let Err(e) =
+                std::fs::set_permissions(&output_path, std::fs::Permissions::from_mode(mode))
+            {
                 eprintln!(
                     "Warning: Failed to set permissions for '{}': {}",
                     output_path.display(),
@@ -97,4 +92,6 @@ pub fn handle_decompression(input: &str, output: &str, fmt: Fmt) {
     }
 
     println!("Decompression complete!");
+
+    Ok(())
 }

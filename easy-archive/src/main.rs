@@ -3,11 +3,8 @@
 /// This binary provides a simple CLI for compressing and decompressing archives.
 use easy_archive::Fmt;
 use easy_archive::cli::{
-    get_default_output, get_help_text,
-    handle_compression, handle_decompression,
+    display_error, get_default_output, get_help_text, handle_compression, handle_decompression,
 };
-#[cfg(feature = "convert")]
-use easy_archive::cli::display_error;
 #[cfg(feature = "convert")]
 use easy_archive::convert::convert_archive_file;
 
@@ -72,12 +69,18 @@ fn main() {
         #[cfg(feature = "decode")]
         (Some(fmt), None) => {
             // Decompression
-            handle_decompression(&inputs[0], &output, fmt);
+            if let Err(e) = handle_decompression(&inputs[0], &output, fmt) {
+                display_error(&e);
+                process::exit(1);
+            }
         }
         #[cfg(feature = "encode")]
         (None, Some(fmt)) => {
             // Compression
-            handle_compression(&inputs, &output, fmt);
+            if let Err(e) = handle_compression(&inputs, &output, fmt) {
+                display_error(&e);
+                process::exit(1);
+            }
         }
         #[cfg(feature = "convert")]
         (Some(input_fmt), Some(output_fmt)) => {
