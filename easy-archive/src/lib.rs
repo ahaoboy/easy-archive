@@ -11,6 +11,7 @@
 /// - `tar-xz` - XZ-compressed TAR
 /// - `tar-bz` - Bzip2-compressed TAR
 /// - `tar-zstd` - Zstd-compressed TAR
+/// - `gz` - Single-file gzip stream
 /// - `zip` - ZIP format
 /// - `default` - Enables all formats
 ///
@@ -93,6 +94,12 @@ mod test {
     #[test]
     fn encode_decode() {
         for fmt in Fmt::iter() {
+            // Single-file formats (plain gzip) encode exactly one file, so
+            // they are exercised by their own round-trip test instead.
+            if fmt.is_single_file() {
+                continue;
+            }
+
             // Skip TarBz if not fully implemented
             #[cfg(feature = "tar-bz")]
             if fmt == Fmt::TarBz {

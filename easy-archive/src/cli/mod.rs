@@ -38,6 +38,8 @@ pub fn get_help_text() -> &'static str {
             formats.extend(&[".tar.bz2", ".tbz2", ".tbz"]);
             #[cfg(feature = "tar-zstd")]
             formats.extend(&[".tar.zst", ".tzst"]);
+            #[cfg(feature = "gz")]
+            formats.push(".gz");
             #[cfg(feature = "zip")]
             formats.push(".zip");
             #[cfg(feature = "7z")]

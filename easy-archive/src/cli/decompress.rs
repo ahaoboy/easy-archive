@@ -10,6 +10,55 @@ use crate::{
 use path_clean::PathClean;
 use std::path::Path;
 
+/// Write a single decoded entry to `output_path`, creating parent
+/// directories as needed and applying Unix permissions when available.
+fn write_file_entry(output_path: &Path, file: &crate::File) -> Result<()> {
+    let output_path = output_path.clean();
+    if let Some(dir) = output_path.parent()
+        && !dir.as_os_str().is_empty()
+        && !dir.exists()
+    {
+        std::fs::create_dir_all(dir).map_err(|e| {
+            ArchiveError::io_context(e, format!("failed to create directory '{}'", dir.display()))
+        })?;
+    }
+
+    if file.is_dir {
+        if !output_path.exists() {
+            std::fs::create_dir_all(&output_path).map_err(|e| {
+                ArchiveError::io_context(
+                    e,
+                    format!("failed to create directory '{}'", output_path.display()),
+                )
+            })?;
+        }
+        return Ok(());
+    }
+
+    std::fs::write(&output_path, &file.buffer).map_err(|e| {
+        ArchiveError::io_context(
+            e,
+            format!("failed to write file '{}'", output_path.display()),
+        )
+    })?;
+
+    #[cfg(unix)]
+    if let Some(mode) = file.mode {
+        use std::os::unix::fs::PermissionsExt;
+        if let Err(e) =
+            std::fs::set_permissions(&output_path, std::fs::Permissions::from_mode(mode))
+        {
+            eprintln!(
+                "Warning: Failed to set permissions for '{}': {}",
+                output_path.display(),
+                e
+            );
+        }
+    }
+
+    Ok(())
+}
+
 /// Handle decompression operation
 ///
 /// Reads an archive file, decodes its contents, and extracts all files
@@ -40,6 +89,17 @@ pub fn handle_decompression(input: &str, output: &str, fmt: Fmt) -> Result<()> {
 
     println!("{} of {} files", human_size(total_size), file_count);
     println!("Decompressing to {}", output);
+
+    // Single-file formats (e.g. plain gzip) hold exactly one entry with no
+    // directory structure, so write it directly to the output path rather
+    // than treating `output` as a directory.
+    if fmt.is_single_file() {
+        if let Some(file) = files.first() {
+            write_file_entry(Path::new(output), file)?;
+        }
+        println!("Decompression complete!");
+        return Ok(());
+    }
 
     for file in &files {
         let output_path = Path::new(output).clean();

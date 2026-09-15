@@ -15,7 +15,7 @@ required-features = ["cli"]
 [features]
 # Default: all formats with both encode and decode
 default = ["cli", "fmt", "convert"]
-fmt = ["tar", "tar-gz", "tar-xz", "tar-bz", "tar-zstd", "zip", "7z"]
+fmt = ["tar", "tar-gz", "tar-xz", "tar-bz", "tar-zstd", "gz", "zip", "7z"]
 cli = ["default", "dep:clap", "convert", "upath"]
 wasm = ["wasm-bindgen", "default"]
 
@@ -35,6 +35,7 @@ tar-gz = ["tar", "dep:flate2"]
 tar-xz = ["tar", "dep:liblzma"]
 tar-bz = ["tar", "dep:bzip2-rs"]
 tar-zstd = ["tar", "dep:zstd", "dep:ruzstd"]
+gz = ["dep:flate2"]
 zip = ["dep:zip", "dep:time"]
 7z = ["dep:sevenz-rust2"]
 

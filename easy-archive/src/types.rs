@@ -14,6 +14,8 @@ use crate::archive::TarGz;
 use crate::archive::TarXz;
 #[cfg(feature = "tar-zstd")]
 use crate::archive::TarZstd;
+#[cfg(feature = "gz")]
+use crate::archive::Gz;
 #[cfg(feature = "zip")]
 use crate::archive::Zip;
 #[cfg(feature = "7z")]
@@ -46,6 +48,9 @@ pub enum Fmt {
     /// Zstd-compressed tar archive (.tar.zst, .tzst, .tzstd)
     #[cfg(feature = "tar-zstd")]
     TarZstd,
+    /// Single-file gzip stream (.gz)
+    #[cfg(feature = "gz")]
+    Gz,
     /// ZIP archive format
     #[cfg(feature = "zip")]
     Zip,
@@ -86,6 +91,8 @@ impl Fmt {
             Fmt::TarBz => TarBz::decode(buffer),
             #[cfg(feature = "tar-zstd")]
             Fmt::TarZstd => TarZstd::decode(buffer),
+            #[cfg(feature = "gz")]
+            Fmt::Gz => Gz::decode(buffer),
             #[cfg(feature = "7z")]
             Fmt::SevenZip => SevenZip::decode(buffer),
         }
@@ -129,6 +136,8 @@ impl Fmt {
             Fmt::TarBz => TarBz::encode(files),
             #[cfg(feature = "tar-zstd")]
             Fmt::TarZstd => TarZstd::encode(files),
+            #[cfg(feature = "gz")]
+            Fmt::Gz => Gz::encode(files),
             #[cfg(feature = "7z")]
             Fmt::SevenZip => SevenZip::encode(files),
         }
@@ -183,10 +192,30 @@ impl Fmt {
             Fmt::TarBz => &[".tar.bz2", ".tbz2", ".tbz"],
             #[cfg(feature = "tar-zstd")]
             Fmt::TarZstd => &[".tzstd", ".tzst", ".tar.zst"],
+            // NOTE: `.gz` is listed *after* `.tar.gz` so that `guess()`
+            // prefers `TarGz` for `.tar.gz` files. `EnumIter` yields variants
+            // in declaration order and `guess()` returns the first match.
+            #[cfg(feature = "gz")]
+            Fmt::Gz => &[".gz"],
             #[cfg(feature = "zip")]
             Fmt::Zip => &[".zip"],
             #[cfg(feature = "7z")]
             Fmt::SevenZip => &[".7z"],
+        }
+    }
+
+    /// Whether this format wraps a single file rather than a collection of
+    /// files inside a container.
+    ///
+    /// Single-file formats (currently plain gzip) decode to exactly one
+    /// [`File`] and encode exactly one [`File`]. Consumers that assume a
+    /// directory tree (path is relative to an output directory) must special
+    /// case these; the entry's `path` is best treated as a plain filename.
+    pub fn is_single_file(&self) -> bool {
+        match self {
+            #[cfg(feature = "gz")]
+            Fmt::Gz => true,
+            _ => false,
         }
     }
 }
@@ -309,6 +338,14 @@ mod test {
             ("a.tar.xz", Fmt::TarXz),
             #[cfg(feature = "tar-bz")]
             ("a.tar.bz2", Fmt::TarBz),
+            // `.tar.gz` must resolve to TarGz, not the plain Gz format,
+            // even though `.gz` also matches the suffix.
+            #[cfg(all(feature = "tar-gz", feature = "gz"))]
+            ("a.tar.gz", Fmt::TarGz),
+            #[cfg(feature = "gz")]
+            ("a.gz", Fmt::Gz),
+            #[cfg(feature = "gz")]
+            ("tool.exe.gz", Fmt::Gz),
         ];
 
         for (name, fmt) in test_cases {
