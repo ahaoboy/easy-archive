@@ -16,7 +16,7 @@ required-features = ["cli"]
 # Default: all formats with both encode and decode
 default = ["cli", "fmt", "convert"]
 fmt = ["tar", "tar-gz", "tar-xz", "tar-bz", "tar-zstd", "gz", "zip", "7z"]
-cli = ["default", "dep:clap", "convert", "upath"]
+cli = ["fmt", "convert", "dep:clap", "convert", "upath"]
 wasm = ["wasm-bindgen", "default"]
 
 # Operation features
