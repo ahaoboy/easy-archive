@@ -47,10 +47,10 @@ Using cargo-binstall:
 cargo binstall easy-archive
 ```
 
-Using npm/pnpm:
+Using npm/pnpm/bun:
 
 ```bash
-pnpm install @easy-install/easy-archive -g
+bun install @easy-install/easy-archive -g
 ```
 
 ## Quick Start

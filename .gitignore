@@ -1,3 +1,4 @@
+bun.lock
 target
 node_modules
 Cargo.lock
