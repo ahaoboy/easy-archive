@@ -11,6 +11,10 @@ pub enum ArchiveError {
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
 
+    /// Zip Error
+    #[error("zip error: {0}")]
+    Zip(#[from] zip::result::ZipError),
+
     /// Failed to decode an archive
     #[error("Failed to decode {format} archive: {reason}")]
     DecodeFailed {

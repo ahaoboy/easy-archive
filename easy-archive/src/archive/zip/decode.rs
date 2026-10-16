@@ -45,7 +45,7 @@ impl Decode for Zip {
                     reason: format!("Failed to read entry {}: {}", i, e),
                 })?;
 
-            let path = file.name().to_string();
+            let path = file.name()?.to_string();
             let is_dir = file.is_dir() || path.ends_with("/");
 
             // Read file content (empty for directories)
