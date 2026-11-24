@@ -30,6 +30,10 @@ easy-archive test.zip
 easy-archive test.zip -o ./test
 ```
 
+## symlinks
+
+TAR (all variants) and ZIP store symbolic links as links instead of copying or dropping them: `File::link_target` holds the target, extraction recreates the link (falling back to a copy where the platform forbids links), and packing records the link again. 7z and gzip have no portable link representation, so encoding rejects them instead of writing an empty file.
+
 ## web
 
 https://ahaoboy.github.io/easy-archive/

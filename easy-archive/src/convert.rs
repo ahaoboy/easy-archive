@@ -31,11 +31,7 @@ use crate::{ArchiveError, Fmt, Result};
 /// std::fs::write("archive.zip", zip_data)?;
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
-pub fn convert_archive(
-    input: Vec<u8>,
-    input_fmt: Fmt,
-    output_fmt: Fmt,
-) -> Result<Vec<u8>> {
+pub fn convert_archive(input: Vec<u8>, input_fmt: Fmt, output_fmt: Fmt) -> Result<Vec<u8>> {
     let files = input_fmt.decode(input)?;
     output_fmt.encode(files)
 }
@@ -66,11 +62,7 @@ pub fn convert_archive_file(
     input_fmt: Fmt,
     output_fmt: Fmt,
 ) -> Result<()> {
-    let input = std::fs::read(input_path).map_err(|e| {
-        ArchiveError::Io(e)
-    })?;
+    let input = std::fs::read(input_path).map_err(ArchiveError::Io)?;
     let output = convert_archive(input, input_fmt, output_fmt)?;
-    std::fs::write(output_path, output).map_err(|e| {
-        ArchiveError::Io(e)
-    })
+    std::fs::write(output_path, output).map_err(ArchiveError::Io)
 }

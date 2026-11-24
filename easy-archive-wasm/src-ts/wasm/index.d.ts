@@ -44,10 +44,21 @@ export class File {
      */
     isDir: boolean;
     /**
+     * Get the link target (WASM only)
+     *
+     * `undefined` for regular files and directories.
+     */
+    get linkTarget(): string | undefined;
+    /**
+     * Set the link target (WASM only)
+     *
+     * Setting a target turns the entry into a symlink on encode.
+     */
+    set linkTarget(value: string | null | undefined);
+    /**
      * Last modification time as Unix timestamp (seconds since epoch)
      */
-    get lastModified(): bigint | undefined;
-    /**
+    get lastModified(): bigint | undefined;    /**
      * Last modification time as Unix timestamp (seconds since epoch)
      */
     set lastModified(value: bigint | null | undefined);

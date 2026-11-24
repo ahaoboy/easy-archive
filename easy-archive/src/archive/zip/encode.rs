@@ -40,9 +40,10 @@ impl Encode for Zip {
 
             if let Some(timestamp) = last_modified
                 && let Ok(offset_time) = OffsetDateTime::from_unix_timestamp(timestamp as i64)
-                && let Ok(datetime) = DateTime::try_from(
-                    time::PrimitiveDateTime::new(offset_time.date(), offset_time.time())
-                )
+                && let Ok(datetime) = DateTime::try_from(time::PrimitiveDateTime::new(
+                    offset_time.date(),
+                    offset_time.time(),
+                ))
             {
                 options = options.last_modified_time(datetime);
             }
@@ -93,20 +94,35 @@ impl Encode for Zip {
 
         // Third pass: Add all files
         for file in files.iter().filter(|f| !f.is_dir) {
-            let mode = file.mode.unwrap_or(0o755);
+            let default_mode = if file.is_symlink() { 0o777 } else { 0o755 };
+            let mode = file.mode.unwrap_or(default_mode);
             let options = create_options(file.last_modified).unix_permissions(mode);
 
-            zip.start_file(&file.path, options)
-                .map_err(|e| ArchiveError::EncodeFailed {
-                    format: "zip".to_string(),
-                    reason: format!("Failed to start file '{}': {}", file.path, e),
+            if let Some(target) = &file.link_target {
+                // The link target is stored as content, with the symlink bit in
+                // the Unix mode, which is how Info-ZIP and friends do it.
+                zip.add_symlink(&file.path, target, options).map_err(|e| {
+                    ArchiveError::EncodeFailed {
+                        format: "zip".to_string(),
+                        reason: format!(
+                            "Failed to add symlink '{}' -> '{}': {}",
+                            file.path, target, e
+                        ),
+                    }
                 })?;
+            } else {
+                zip.start_file(&file.path, options)
+                    .map_err(|e| ArchiveError::EncodeFailed {
+                        format: "zip".to_string(),
+                        reason: format!("Failed to start file '{}': {}", file.path, e),
+                    })?;
 
-            zip.write_all(&file.buffer)
-                .map_err(|e| ArchiveError::EncodeFailed {
-                    format: "zip".to_string(),
-                    reason: format!("Failed to write file '{}': {}", file.path, e),
-                })?;
+                zip.write_all(&file.buffer)
+                    .map_err(|e| ArchiveError::EncodeFailed {
+                        format: "zip".to_string(),
+                        reason: format!("Failed to write file '{}': {}", file.path, e),
+                    })?;
+            }
         }
 
         zip.finish().map_err(|e| ArchiveError::EncodeFailed {

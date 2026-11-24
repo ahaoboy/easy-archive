@@ -36,19 +36,55 @@ pub(crate) fn encode_tar_archive(files: Vec<File>) -> Result<Vec<u8>> {
 
         for file in files {
             let mut header = tar::Header::new_gnu();
-            header.set_size(file.buffer.len() as u64);
-            header.set_mode(file.mode.unwrap_or(0o644));
             header.set_uid(0);
             header.set_gid(0);
             header.set_mtime(file.last_modified.unwrap_or(0));
-            header.set_cksum();
 
-            builder
-                .append_data(&mut header, &file.path, &file.buffer[..])
-                .map_err(|e| ArchiveError::EncodeFailed {
-                    format: "tar".to_string(),
-                    reason: format!("Failed to append file '{}': {}", file.path, e),
-                })?;
+            match &file.link_target {
+                Some(target) => {
+                    header.set_entry_type(tar::EntryType::Symlink);
+                    header.set_size(0);
+                    header.set_mode(file.mode.unwrap_or(0o777));
+                    header.set_cksum();
+
+                    builder
+                        .append_link(&mut header, &file.path, target)
+                        .map_err(|e| ArchiveError::EncodeFailed {
+                            format: "tar".to_string(),
+                            reason: format!(
+                                "Failed to append symlink '{}' -> '{}': {}",
+                                file.path, target, e
+                            ),
+                        })?;
+                }
+                None => {
+                    // Directories are entries too: writing them as empty
+                    // regular files makes extraction fail with "Not a
+                    // directory" as soon as a child entry follows.
+                    if file.is_dir {
+                        header.set_entry_type(tar::EntryType::Directory);
+                        header.set_size(0);
+                        header.set_mode(file.mode.unwrap_or(0o755));
+                    } else {
+                        header.set_size(file.buffer.len() as u64);
+                        header.set_mode(file.mode.unwrap_or(0o644));
+                    }
+                    header.set_cksum();
+
+                    let path = if file.is_dir {
+                        format!("{}/", file.path.trim_end_matches('/'))
+                    } else {
+                        file.path.clone()
+                    };
+
+                    builder
+                        .append_data(&mut header, &path, &file.buffer[..])
+                        .map_err(|e| ArchiveError::EncodeFailed {
+                            format: "tar".to_string(),
+                            reason: format!("Failed to append file '{}': {}", file.path, e),
+                        })?;
+                }
+            }
         }
 
         builder.finish().map_err(|e| ArchiveError::EncodeFailed {

@@ -54,19 +54,40 @@ pub(crate) fn decode_tar_archive<R: Read>(reader: R) -> Result<Vec<File>> {
             continue;
         }
 
+        // Symlinks (and hard links) carry a target path instead of content.
+        let entry_type = file.header().entry_type();
+        let link_target = if entry_type.is_symlink() || entry_type.is_hard_link() {
+            file.link_name()
+                .map_err(|e| {
+                    ArchiveError::InvalidArchive(format!("Invalid link target in tar: {}", e))
+                })?
+                .map(|target| target.to_string_lossy().to_string())
+        } else {
+            None
+        };
+
         let mut buffer = Vec::new();
-        file.read_to_end(&mut buffer)
-            .map_err(|e| ArchiveError::DecodeFailed {
-                format: "tar".to_string(),
-                reason: format!("Failed to read file content: {}", e),
-            })?;
+        if link_target.is_none() {
+            file.read_to_end(&mut buffer)
+                .map_err(|e| ArchiveError::DecodeFailed {
+                    format: "tar".to_string(),
+                    reason: format!("Failed to read file content: {}", e),
+                })?;
+        }
 
         let mode = file.header().mode().ok();
-        let is_dir = path.ends_with("/");
+        let is_dir = entry_type.is_dir() || path.ends_with("/");
         let path = clean(&path);
         let mtime = file.header().mtime().ok();
 
-        files.push(File::new(path, buffer, mode, is_dir, mtime));
+        files.push(File {
+            path,
+            buffer,
+            mode,
+            is_dir,
+            link_target,
+            last_modified: mtime,
+        });
     }
 
     Ok(files)

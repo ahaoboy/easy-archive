@@ -23,6 +23,18 @@ impl Encode for Gz {
 
         let file = files.into_iter().next().unwrap();
 
+        // A gzip stream holds content only; a link would silently become an
+        // empty file.
+        if let Some(target) = &file.link_target {
+            return Err(ArchiveError::EncodeFailed {
+                format: "gz".to_string(),
+                reason: format!(
+                    "'{}' is a symlink to '{}', which gzip cannot represent",
+                    file.path, target
+                ),
+            });
+        }
+
         // Record the original filename (basename) so that decoding can
         // recover it. A bare gzip stream has no other place to store a path.
         let filename = file.path.rsplit(['/', '\\']).next().unwrap_or(&file.path);
@@ -31,9 +43,9 @@ impl Encode for Gz {
             .filename(filename)
             .write(Vec::new(), Compression::default());
 
-        encoder.write_all(&file.buffer).map_err(|e| {
-            ArchiveError::CompressionError(format!("GZ compression failed: {}", e))
-        })?;
+        encoder
+            .write_all(&file.buffer)
+            .map_err(|e| ArchiveError::CompressionError(format!("GZ compression failed: {}", e)))?;
 
         encoder
             .finish()

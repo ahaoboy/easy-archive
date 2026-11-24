@@ -1,3 +1,5 @@
+import { dirname, isAbsolute, resolve, sep } from "path";
+
 export function modeToString(mode: number, isDir: boolean): string {
   const rwxMapping = [
     "---",
@@ -31,4 +33,21 @@ export function humanSize(bytes: number): string {
   }
 
   return `${parseFloat(size.toPrecision(2))}${units[index]}`;
+}
+
+/**
+ * Whether a symlink target stays inside the extraction root.
+ *
+ * Archives are untrusted input: a link pointing outside (`../../etc`) could
+ * redirect everything extracted after it, so such links are not created.
+ */
+export function isSafeLink(
+  outputDir: string,
+  outputPath: string,
+  target: string,
+): boolean {
+  if (isAbsolute(target)) return false;
+  const root = resolve(outputDir);
+  const resolved = resolve(dirname(outputPath), target);
+  return resolved === root || resolved.startsWith(root + sep);
 }

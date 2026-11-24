@@ -44,6 +44,7 @@ impl Decode for SevenZip {
                     path: entry.name.to_string(),
                     mode: None,
                     is_dir: entry.is_directory,
+                    link_target: None,
                     last_modified: None,
                 };
                 files.push(file);

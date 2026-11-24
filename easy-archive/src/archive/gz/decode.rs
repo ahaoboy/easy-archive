@@ -88,6 +88,7 @@ impl Decode for Gz {
             buffer: decompressed,
             mode: None,
             is_dir: false,
+            link_target: None,
             last_modified: header.as_ref().and_then(|h| h.mtime),
         }])
     }

@@ -46,11 +46,13 @@ impl Decode for Zip {
                 })?;
 
             let path = file.name()?.to_string();
+            let is_symlink = file.is_symlink();
             let is_dir = file.is_dir() || path.ends_with("/");
 
-            // Read file content (empty for directories)
+            // Read file content (empty for directories). A symlink stores its
+            // target as content, so it has to be read too.
             let mut buffer = Vec::new();
-            if file.is_file() {
+            if file.is_file() || is_symlink {
                 file.read_to_end(&mut buffer)
                     .map_err(|e| ArchiveError::DecodeFailed {
                         format: "zip".to_string(),
@@ -58,13 +60,27 @@ impl Decode for Zip {
                     })?;
             }
 
+            let link_target = if is_symlink {
+                Some(String::from_utf8_lossy(&buffer).to_string())
+            } else {
+                None
+            };
+            let buffer = if is_symlink { Vec::new() } else { buffer };
+
             let path = clean(&path);
             let last_modified = file
                 .last_modified()
                 .and_then(|dt| time::PrimitiveDateTime::try_from(dt).ok())
                 .map(|pt| pt.assume_utc().unix_timestamp() as u64);
 
-            files.push(File::new(path, buffer, None, is_dir, last_modified));
+            files.push(File {
+                path,
+                buffer,
+                mode: None,
+                is_dir,
+                link_target,
+                last_modified,
+            });
         }
 
         Ok(files)

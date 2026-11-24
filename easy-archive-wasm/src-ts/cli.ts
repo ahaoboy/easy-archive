@@ -2,12 +2,14 @@ import {
   chmodSync,
   existsSync,
   mkdirSync,
+  symlinkSync,
   writeFileSync,
 } from "fs";
 import { dirname, join, resolve } from "path";
 import { encode, guess, humanSize, modeToString, File } from "./index";
 import { extractTo } from "./tool";
 import { collectFiles } from "./collect";
+import { isSafeLink } from "./share";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -25,8 +27,9 @@ function printFileList(files: Array<File>): number {
   let totalSize = 0;
   for (const file of files) {
     totalSize += file.bufferSize;
+    const target = file.linkTarget ? ` -> ${file.linkTarget}` : "";
     console.log(
-      `${modeToString(safeMode(file), file.isDir).padEnd(11)} ${humanSize(file.bufferSize).padStart(8)} ${file.path}`,
+      `${modeToString(safeMode(file), file.isDir).padEnd(11)} ${humanSize(file.bufferSize).padStart(8)} ${file.path}${target}`,
     );
   }
   return totalSize;
@@ -46,6 +49,20 @@ function writeExtractedFiles(outputDir: string, files: Array<File>): void {
       if (!existsSync(outputPath)) {
         mkdirSync(outputPath, { recursive: true });
       }
+    } else if (file.linkTarget) {
+      if (isSafeLink(outputDir, outputPath, file.linkTarget)) {
+        try {
+          symlinkSync(file.linkTarget, outputPath);
+        } catch {
+          // Already extracted, or the platform forbids links.
+        }
+      } else {
+        console.warn(
+          `Warning: skipped symlink '${file.path}' -> '${file.linkTarget}' because it points outside the output directory`,
+        );
+      }
+      // A link cannot be chmod'ed, and has no content.
+      continue;
     } else if (file.bufferSize) {
       writeFileSync(outputPath, file.buffer);
     }

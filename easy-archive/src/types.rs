@@ -4,6 +4,8 @@ use strum_macros::EnumIter;
 
 use crate::error::Result;
 
+#[cfg(feature = "gz")]
+use crate::archive::Gz;
 #[cfg(feature = "tar")]
 use crate::archive::Tar;
 #[cfg(feature = "tar-bz")]
@@ -14,8 +16,6 @@ use crate::archive::TarGz;
 use crate::archive::TarXz;
 #[cfg(feature = "tar-zstd")]
 use crate::archive::TarZstd;
-#[cfg(feature = "gz")]
-use crate::archive::Gz;
 #[cfg(feature = "zip")]
 use crate::archive::Zip;
 #[cfg(feature = "7z")]
@@ -242,6 +242,17 @@ pub struct File {
     #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = "isDir"))]
     pub is_dir: bool,
 
+    /// Link target, for symbolic links (and hard links, which TAR stores the
+    /// same way).
+    ///
+    /// When set, `buffer` is empty: the entry carries a path, not content.
+    /// Decoders that support links fill this in; encoders write a link entry
+    /// instead of a regular file. Formats without link support ignore it when
+    /// decoding and reject it when encoding, so links are never silently
+    /// turned into empty files.
+    #[cfg_attr(feature = "wasm", wasm_bindgen(skip))]
+    pub link_target: Option<String>,
+
     /// Last modification time as Unix timestamp (seconds since epoch)
     #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = "lastModified"))]
     pub last_modified: Option<u64>,
@@ -273,7 +284,38 @@ impl File {
             buffer,
             mode,
             is_dir,
+            link_target: None,
             last_modified,
+        }
+    }
+
+    /// Whether this entry is a symbolic (or hard) link rather than content.
+    pub fn is_symlink(&self) -> bool {
+        self.link_target.is_some()
+    }
+}
+
+/// Plain Rust constructors, kept out of the WebAssembly surface: JS reaches
+/// links through the `linkTarget` getter/setter instead.
+impl File {
+    /// Create a symbolic link entry
+    ///
+    /// # Arguments
+    /// * `path` - The relative path of the link within the archive
+    /// * `target` - What the link points at, as stored in the archive
+    ///
+    /// # Example
+    /// ```
+    /// use easy_archive::File;
+    /// let link = File::symlink("lib/libfoo.so.1".to_string(), "libfoo.so.1.2.3".to_string());
+    /// assert!(link.is_symlink());
+    /// assert_eq!(link.link_target.as_deref(), Some("libfoo.so.1.2.3"));
+    /// ```
+    pub fn symlink(path: String, target: String) -> Self {
+        File {
+            path,
+            link_target: Some(target),
+            ..Default::default()
         }
     }
 }
@@ -305,6 +347,22 @@ impl File {
     #[wasm_bindgen(setter = path)]
     pub fn set_path(&mut self, path: String) {
         self.path = path;
+    }
+
+    /// Get the link target (WASM only)
+    ///
+    /// `undefined` for regular files and directories.
+    #[wasm_bindgen(getter = linkTarget)]
+    pub fn get_link_target(&self) -> Option<String> {
+        self.link_target.clone()
+    }
+
+    /// Set the link target (WASM only)
+    ///
+    /// Setting a target turns the entry into a symlink on encode.
+    #[wasm_bindgen(setter = linkTarget)]
+    pub fn set_link_target(&mut self, target: Option<String>) {
+        self.link_target = target;
     }
 
     /// Get the buffer size in bytes (WASM only)

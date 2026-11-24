@@ -19,6 +19,18 @@ impl Encode for SevenZip {
         let mut readers = vec![];
 
         for file in files {
+            // 7z entries have no portable link representation in this crate, so
+            // refuse rather than writing an empty file in place of a link.
+            if let Some(target) = &file.link_target {
+                return Err(ArchiveError::EncodeFailed {
+                    format: "7z".to_string(),
+                    reason: format!(
+                        "'{}' is a symlink to '{}', which the 7z encoder does not support",
+                        file.path, target
+                    ),
+                });
+            }
+
             entries.push(ArchiveEntry {
                 name: file.path.replace("\\", "/"),
                 has_stream: true,

@@ -4,6 +4,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  symlinkSync,
   writeFileSync,
 } from "fs";
 import { decode, File, guess } from "./wasm";
@@ -12,6 +13,7 @@ import { tmpdir } from "os";
 import { execSync } from "child_process";
 import { Buffer } from "node:buffer";
 import { collectFiles } from "./collect";
+import { isSafeLink } from "./share";
 
 export function isMsys() {
   return !!process.env["MSYSTEM"];
@@ -115,13 +117,14 @@ export function extractToByWasm(
   }
   const jsFiles: File[] = [];
   for (const file of files) {
-    const { path, mode, isDir, lastModified, clone, bufferSize, buffer } = file;
+    const { path, mode, isDir, lastModified, linkTarget, clone, bufferSize, buffer } = file;
     jsFiles.push({
       path,
       buffer,
       mode,
       isDir,
       lastModified,
+      linkTarget,
       clone,
       bufferSize,
       free: () => { },
@@ -135,6 +138,16 @@ export function extractToByWasm(
     const dir = dirname(outputPath);
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
+    }
+    if (linkTarget) {
+      if (isSafeLink(outputDir, outputPath, linkTarget)) {
+        symlinkSync(linkTarget, outputPath);
+      } else {
+        console.warn(
+          `Warning: skipped symlink '${path}' -> '${linkTarget}' because it points outside the output directory`,
+        );
+      }
+      continue;
     }
     if (bufferSize) {
       writeFileSync(outputPath, buffer);

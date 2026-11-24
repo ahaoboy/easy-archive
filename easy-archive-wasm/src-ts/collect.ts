@@ -1,10 +1,11 @@
-import { readdirSync, readFileSync, statSync } from "fs";
+import { lstatSync, readdirSync, readFileSync, readlinkSync, statSync } from "fs";
 import { join, relative, resolve, sep } from "path";
 import { File } from "./wasm";
 
 /**
- * Recursively collect all files and directories under `rootDir` as `File` objects.
- * Returns an empty array if the path does not exist or is neither file nor directory.
+ * Recursively collect all files, directories and symlinks under `rootDir` as
+ * `File` objects. Returns an empty array if the path does not exist or is
+ * neither file nor directory.
  */
 export function collectFiles(rootDir: string): File[] {
   const resolved = resolve(rootDir);
@@ -31,10 +32,20 @@ export function collectFiles(rootDir: string): File[] {
 function walkDir(basePath: string, currentPath: string, files: File[]): void {
   const entries = readdirSync(currentPath, { withFileTypes: true });
   for (const entry of entries) {
-    if (!entry.isFile() && !entry.isDirectory()) continue;
-
     const fullPath = join(currentPath, entry.name);
     const relPath = relative(basePath, fullPath).replaceAll("\\", "/") || entry.name;
+
+    if (entry.isSymbolicLink()) {
+      // Keep links as links; the target is stored verbatim because it may be
+      // relative to the link.
+      const file = new File(relPath, new Uint8Array(0), null, false, BigInt(+lstatSync(fullPath).mtime));
+      file.linkTarget = readlinkSync(fullPath);
+      files.push(file);
+      continue;
+    }
+
+    if (!entry.isFile() && !entry.isDirectory()) continue;
+
     const st = statSync(fullPath);
 
     if (entry.isDirectory()) {

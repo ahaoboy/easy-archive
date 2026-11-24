@@ -8,10 +8,12 @@ use path_clean::PathClean;
 use std::io;
 use std::path::Path;
 
-/// Collect files and directories recursively, skipping symlinks
+/// Collect files, directories and symlinks recursively
 ///
 /// If the input is a file, it's processed directly. If it's a directory,
-/// all files and subdirectories are collected recursively.
+/// all files, subdirectories and symlinks are collected recursively. Links are
+/// recorded as links (with a `link_target`) so a round trip keeps them
+/// instead of copying or dropping them.
 ///
 /// # Arguments
 /// * `input_path` - The path to collect files from
@@ -36,6 +38,7 @@ pub fn collect_files(input_path: &Path, strip_root: bool) -> io::Result<Vec<File
             buffer,
             is_dir: false,
             mode: None,
+            link_target: None,
             last_modified: None,
         });
         return Ok(files);
@@ -66,6 +69,7 @@ pub fn collect_files(input_path: &Path, strip_root: bool) -> io::Result<Vec<File
                     buffer: vec![],
                     is_dir: true,
                     mode: None,
+                    link_target: None,
                     last_modified: None,
                 });
             }
@@ -77,7 +81,7 @@ pub fn collect_files(input_path: &Path, strip_root: bool) -> io::Result<Vec<File
     Ok(files)
 }
 
-/// Recursive helper function to collect files and directories
+/// Recursive helper function to collect files, directories and symlinks
 ///
 /// # Arguments
 /// * `base_path` - The base path for calculating relative paths
@@ -91,34 +95,45 @@ pub fn collect_files_recursive(
     for entry in std::fs::read_dir(current_path)? {
         let entry = entry?;
         let path = entry.path();
-
-        // Skip if not a file or directory (e.g., symlinks)
-        if !path.is_file() && !path.is_dir() {
-            continue;
-        }
+        // `symlink_metadata` describes the link itself, unlike `is_file`.
+        let file_type = std::fs::symlink_metadata(&path)?.file_type();
 
         let rel_path = path
             .strip_prefix(base_path)
             .map(|p| p.to_string_lossy().to_string())
             .unwrap_or_else(|_| path.to_string_lossy().to_string());
 
-        if path.is_dir() {
+        if file_type.is_symlink() {
+            // Keep the target verbatim: it may be relative to the link, which
+            // only the consumer knows how to resolve.
+            let target = std::fs::read_link(&path)?;
+            files.push(File {
+                path: rel_path,
+                buffer: vec![],
+                is_dir: false,
+                mode: None,
+                link_target: Some(target.to_string_lossy().to_string()),
+                last_modified: None,
+            });
+        } else if file_type.is_dir() {
             files.push(File {
                 path: rel_path.clone(),
                 buffer: vec![],
                 is_dir: true,
                 mode: None,
+                link_target: None,
                 last_modified: None,
             });
             // Recurse into subdirectory
             collect_files_recursive(base_path, &path, files)?;
-        } else if path.is_file() {
+        } else if file_type.is_file() {
             let buffer = std::fs::read(&path)?;
             files.push(File {
                 path: rel_path,
                 buffer,
                 is_dir: false,
                 mode: None,
+                link_target: None,
                 last_modified: None,
             });
         }
