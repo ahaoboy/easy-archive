@@ -62,13 +62,23 @@ export function FileTable({ data, onRemove }: FileTableProps) {
           <TableBody>
             {paged.map((row) => (
               <TableRow key={row.key} hover>
-                <TableCell sx={{ wordBreak: "break-all" }}>{row.path}</TableCell>
+                <TableCell sx={{ wordBreak: "break-all" }}>
+                  {row.path}
+                  {row.linkTarget && (
+                    <Box component="span" sx={{ color: "text.secondary" }}>
+                      {" → "}
+                      {row.linkTarget}
+                    </Box>
+                  )}
+                </TableCell>
                 <TableCell align="center">{row.isDir ? "✓" : ""}</TableCell>
                 <TableCell align="center">{row.isDir ? "" : row.size}</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap", fontFamily: "monospace", fontSize: "0.85rem" }}>
-                  {row.mode !== undefined
-                    ? `(0o${row.mode.toString(8).padStart(3, "0")}) ${modeToString(row.mode, row.isDir)}`
-                    : ""}
+                  {row.linkTarget
+                    ? "lrwxrwxrwx"
+                    : row.mode !== undefined
+                      ? `(0o${row.mode.toString(8).padStart(3, "0")}) ${modeToString(row.mode, row.isDir)}`
+                      : ""}
                 </TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>
                   {row.lastModified

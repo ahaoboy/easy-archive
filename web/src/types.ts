@@ -6,6 +6,8 @@ export interface FileType {
   buffer: Uint8Array;
   size: string;
   isDir: boolean;
+  /** Link target when the entry is a symbolic link. */
+  linkTarget: string | undefined;
   lastModified: bigint | undefined | null;
   key: string;
   file: WasmFile;

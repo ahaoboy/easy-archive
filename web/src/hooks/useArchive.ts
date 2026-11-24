@@ -41,9 +41,13 @@ export function useArchive() {
     if (data.length === 0) return;
     const archive = encode(
       outputFmt,
-      data.map(
-        (i) => new WasmFile(i.path, i.buffer, i.mode, i.isDir, i.lastModified),
-      ),
+      data.map((i) => {
+        const file = new WasmFile(i.path, i.buffer, i.mode, i.isDir, i.lastModified);
+        // Decoded links carry no content; the target has to be restored or the
+        // re-packed archive would hold a broken empty file instead.
+        file.linkTarget = i.linkTarget;
+        return file;
+      }),
     );
     if (!archive) return;
 

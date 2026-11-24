@@ -65,7 +65,7 @@ export async function filesToData(
     return;
   }
   return decodeFiles.map((item) => {
-    const { path, mode, isDir, lastModified, buffer } = item;
+    const { path, mode, isDir, lastModified, linkTarget, buffer } = item;
     return {
       key: path,
       path,
@@ -74,6 +74,7 @@ export async function filesToData(
       buffer,
       size: humanSize(buffer.length),
       file: item,
+      linkTarget: linkTarget ?? undefined,
       lastModified,
     };
   });
