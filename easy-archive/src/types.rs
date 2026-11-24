@@ -289,6 +289,7 @@ impl File {
         }
     }
 
+    #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = "isSymlink"))]
     /// Whether this entry is a symbolic (or hard) link rather than content.
     pub fn is_symlink(&self) -> bool {
         self.link_target.is_some()

@@ -117,7 +117,7 @@ export function extractToByWasm(
   }
   const jsFiles: File[] = [];
   for (const file of files) {
-    const { path, mode, isDir, lastModified, linkTarget, clone, bufferSize, buffer } = file;
+    const { path, mode, isDir, lastModified, linkTarget, isSymlink,  clone, bufferSize, buffer } = file;
     jsFiles.push({
       path,
       buffer,
@@ -125,6 +125,7 @@ export function extractToByWasm(
       isDir,
       lastModified,
       linkTarget,
+      isSymlink,
       clone,
       bufferSize,
       free: () => { },

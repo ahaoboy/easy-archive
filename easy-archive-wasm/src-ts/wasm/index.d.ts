@@ -15,6 +15,10 @@ export class File {
      */
     clone(): File;
     /**
+     * Whether this entry is a symbolic (or hard) link rather than content.
+     */
+    isSymlink(): boolean;
+    /**
      * Create a new File entry
      *
      * # Arguments
@@ -24,7 +28,7 @@ export class File {
      * * `is_dir` - Whether this is a directory
      * * `last_modified` - Optional modification timestamp
      */
-    constructor(path: string, buffer: Uint8Array, mode: number | null | undefined, is_dir: boolean, last_modified?: bigint | null);
+    constructor(path: string, buffer: Uint8Array | number[], mode: number | null | undefined, is_dir: boolean, last_modified?: bigint | null);
     /**
      * Get the buffer size in bytes (WASM only)
      */
@@ -34,15 +38,11 @@ export class File {
      *
      * Note: This consumes the File to reduce memory consumption
      */
-    buffer: Uint8Array;
+    get buffer(): Uint8Array;
     /**
-     * Get the file path (WASM only)
+     * Set the file buffer (WASM only)
      */
-    path: string;
-    /**
-     * Whether this entry represents a directory
-     */
-    isDir: boolean;
+    set buffer(value: Uint8Array | number[]);
     /**
      * Get the link target (WASM only)
      *
@@ -56,9 +56,18 @@ export class File {
      */
     set linkTarget(value: string | null | undefined);
     /**
+     * Get the file path (WASM only)
+     */
+    path: string;
+    /**
+     * Whether this entry represents a directory
+     */
+    isDir: boolean;
+    /**
      * Last modification time as Unix timestamp (seconds since epoch)
      */
-    get lastModified(): bigint | undefined;    /**
+    get lastModified(): bigint | undefined;
+    /**
      * Last modification time as Unix timestamp (seconds since epoch)
      */
     set lastModified(value: bigint | null | undefined);
@@ -100,13 +109,17 @@ export enum Fmt {
      */
     TarZstd = 4,
     /**
+     * Single-file gzip stream (.gz)
+     */
+    Gz = 5,
+    /**
      * ZIP archive format
      */
-    Zip = 5,
+    Zip = 6,
     /**
      * 7z archive format
      */
-    SevenZip = 6,
+    SevenZip = 7,
 }
 
 /**
@@ -121,7 +134,7 @@ export enum Fmt {
  */
 export function compress(entries: string[], datas: Uint8Array[]): Uint8Array;
 
-export function decode(fmt: Fmt, buffer: Uint8Array): File[] | undefined;
+export function decode(fmt: Fmt, buffer: Uint8Array | number[]): File[] | undefined;
 
 /**
  * Decompresses a 7z archive in WebAssembly environment.
